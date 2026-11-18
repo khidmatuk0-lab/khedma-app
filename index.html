@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>خدمة - مشاوير مصر</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+body{font-family:Arial;background:#f1f5f9;margin:0;color:#172554}
+header{background:#075985;color:white;text-align:center;padding:25px}
+main{max-width:550px;margin:20px auto;padding:15px}
+.card{background:white;padding:18px;border-radius:14px;margin-bottom:15px;box-shadow:0 2px 8px #ddd}
+input,select,button{box-sizing:border-box;width:100%;padding:13px;margin:7px 0;border:1px solid #cbd5e1;border-radius:8px;font-size:16px}
+button{background:#0284c7;color:white;border:0;font-weight:bold}
+button:disabled{background:#94a3b8}
+h2{font-size:20px}
+.hidden{display:none}
+.ride{border:1px solid #ddd;padding:12px;border-radius:10px;margin:10px 0}
+#message{padding:10px;color:#075985}
+</style>
+</head>
+<body>
+<header>
+<h1>خِدمة 🇪🇬</h1>
+<p>مشاويرك في كل محافظات مصر</p>
+</header>
+<main>
+<div id="message">أهلاً بك في تطبيق خدمة</div>
+
+<section class="card" id="auth">
+<h2>تسجيل الدخول أو حساب جديد</h2>
+<input id="email" type="email" placeholder="البريد الإلكتروني">
+<input id="password" type="password" placeholder="كلمة المرور">
+<button onclick="login()">تسجيل الدخول</button>
+<hr>
+<input id="name" placeholder="الاسم بالكامل">
+<input id="phone" placeholder="رقم الهاتف">
+<select id="role">
+<option value="customer">أنا عميل</option>
+<option value="driver">أنا سائق</option>
+</select>
+<button onclick="signup()">إنشاء حساب جديد</button>
+</section>
+
+<section class="card hidden" id="app">
+<h2 id="welcome"></h2>
+<button onclick="logout()">تسجيل الخروج</button>
+
+<div id="customer" class="hidden">
+<h2>اطلب مشوارك</h2>
+<select id="governorate">
+<option value="">اختر المحافظة</option>
+<option>القاهرة</option><option>الجيزة</option>
+<option>الإسكندرية</option><option>القليوبية</option>
+<option>الشرقية</option><option>الدقهلية</option>
+<option>الغربية</option><option>المنوفية</option>
+<option>البحيرة</option><option>كفر الشيخ</option>
+<option>دمياط</option><option>بورسعيد</option>
+<option>الإسماعيلية</option><option>السويس</option>
+<option>شمال سيناء</option><option>جنوب سيناء</option>
+<option>الفيوم</option><option>بني سويف</option>
+<option>المنيا</option><option>أسيوط</option>
+<option>سوهاج</option><option>قنا</option>
+<option>الأقصر</option><option>أسوان</option>
+<option>البحر الأحمر</option><option>الوادي الجديد</option>
+<option>مطروح</option>
+</select>
+<input id="pickup" placeholder="مكان الانطلاق">
+<input id="destination" placeholder="مكان الوصول">
+<input id="price" type="number" placeholder="السعر المقترح بالجنيه">
+<button onclick="requestRide()">إرسال طلب المشوار</button>
+<h2>طلباتي</h2>
+<div id="myRides"></div>
+</div>
+
+<div id="driver" class="hidden">
+<h2>المشاوير المتاحة</h2>
+<button onclick="loadRides()">تحديث الطلبات</button>
+<div id="availableRides"></div>
+<h2>المشاوير التي قبلتها</h2>
+<div id="acceptedRides"></div>
+</div>
+</section>
+</main>
+
+<script>
+const SUPABASE_URL = "ضع_رابط_مشروعك_هنا";
+const SUPABASE_KEY = "ضع_مفتاح_Publishable_هنا";
+const db = supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+let currentUser = null;
+let currentProfile = null;
+
+function msg(t){
+ document.getElementById("message").textContent=t;
+}
+async function signup(){
+ const email=document.getElementById("email").value.trim();
+ const password=document.getElementById("password").value;
+ if(!email || password.length<6){msg("اكتب البريد وكلمة مرور 6 أحرف على الأقل");return}
+ const {error}=await db.auth.signUp({email,password});
+ if(error){msg(error.message);return}
+ msg("تم إنشاء الحساب. إذا طلب منك تأكيد البريد، افتح رسالة التأكيد ثم سجل الدخول.");
+}
+async function login(){
+ const email=document.getElementById("email").value.trim();
+ const password=document.getElementById("password").value;
+ const {data,error}=await db.auth.signInWithPassword({email,password});
+ if(error){msg("تعذر الدخول: "+error.message);return}
+ currentUser=data.user;
+ await enterApp();
+}
+async function enterApp(){
+ document.getElementById("auth").classList.add("hidden");
+ document.getElementById("app").classList.remove("hidden");
+ const {data,error}=await db.from("profiles").select("*").eq("id",currentUser.id).maybeSingle();
+ if(error){msg("تعذر قراءة الحساب: "+error.message);return}
+ currentProfile=data;
+ if(!currentProfile){
+  const name=document.getElementById("name").value.trim();
+  const phone=document.getElementById("phone").value.trim();
+  const role=document.getElementById("role").value;
+  if(!name || !phone){
+   msg("اكتب اسمك ورقم هاتفك ثم سجل الخروج وادخل مرة أخرى");
+   document.getElementById("auth").classList.remove("hidden");
+   return;
+  }
+  const {data:newProfile,error:insertError}=await db.from("profiles").insert({
+   id:currentUser.id,full_name:name,phone:phone,role:role
+  }).select().single();
+  if(insertError){msg("تعذر إنشاء بيانات الحساب: "+insertError.message);return}
+  currentProfile=newProfile;
+ }
+ document.getElementById("welcome").textContent="أهلاً "+(currentProfile.full_name||"بك");
+ if(currentProfile.role==="driver"){
+  document.getElementById("driver").classList.remove("hidden");
+  document.getElementById("customer").classList.add("hidden");
+  loadRides();
+ }else{
+  document.getElementById("customer").classList.remove("hidden");
+  document.getElementById("driver").classList.add("hidden");
+  loadMyRides();
+ }
+ msg("تم تسجيل الدخول بنجاح");
+}
+async function requestRide(){
+ const governorate=document.getElementById("governorate").value;
+ const pickup=document.getElementById("pickup").value.trim();
+ const destination=document.getElementById("destination").value.trim();
+ const price=Number(document.getElementById("price").value);
+ if(!governorate||!pickup||!destination){msg("أكمل المحافظة ومكان الانطلاق والوصول");return}
+ const {error}=await db.from("rides").insert({
+  customer_id:currentUser.id,
+  pickup_address:pickup,
+  destination_address:destination,
+  governorate:governorate,
+  price:price||null,
+  status:"pending"
+ });
+ if(error){msg("لم يتم إرسال الطلب: "+error.message);return}
+ msg("تم إرسال طلب المشوار بنجاح");
+ loadMyRides();
+}
+async function loadMyRides(){
+ const {data,error}=await db.from("rides").select("*").eq("customer_id",currentUser.id).order("created_at",{ascending:false});
+ if(error){msg(error.message);return}
+ document.getElementById("myRides").innerHTML=(data||[]).map(r=>
+ `<div class="ride">من: ${safe(r.pickup_address)}<br>إلى: ${safe(r.destination_address)}<br>المحافظة: ${safe(r.governorate)}<br>السعر: ${r.price??"غير محدد"} جنيه<br>الحالة: ${safe(r.status)}</div>`
+ ).join("")||"لا توجد طلبات حتى الآن";
+}
+async function loadRides(){
+ const {data,error}=await db.from("rides").select("*").eq("status","pending").is("driver_id",null).order("created_at",{ascending:false});
+ if(error){msg("تعذر تحميل الطلبات: "+error.message);return}
+ document.getElementById("availableRides").innerHTML=(data||[]).map(r=>
+ `<div class="ride">من: ${safe(r.pickup_address)}<br>إلى: ${safe(r.destination_address)}<br>المحافظة: ${safe(r.governorate)}<br>السعر: ${r.price??"غير محدد"} جنيه<br><button onclick="acceptRide('${r.id}')">قبول المشوار</button></div>`
+ ).join("")||"لا توجد مشاوير متاحة حالياً";
+ const {data:accepted,error:acceptedError}=await db.from("rides").select("*").eq("driver_id",currentUser.id).order("created_at",{ascending:false});
+ if(!acceptedError){
+ document.getElementById("acceptedRides").innerHTML=(accepted||[]).map(r=>
+ `<div class="ride">من: ${safe(r.pickup_address)}<br>إلى: ${safe(r.destination_address)}<br>الحالة: ${safe(r.status)}</div>`
+ ).join("")||"لم تقبل مشاوير بعد";
+ }
+}
+async function acceptRide(id){
+ const {error}=await db.rpc("accept_ride",{p_ride_id:id});
+ if(error){msg("تعذر قبول المشوار: "+error.message);return}
+ msg("تم قبول المشوار بنجاح");
+ loadRides();
+}
+function safe(value){
+ return String(value??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+async function logout(){
+ await db.auth.signOut();
+ location.reload();
+}
+db.auth.getSession().then(async({data})=>{
+ if(data.session){currentUser=data.session.user;await enterApp()}
+});
+</script>
+</body>
+</html>
