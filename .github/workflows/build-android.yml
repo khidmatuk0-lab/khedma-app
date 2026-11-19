@@ -23,6 +23,8 @@ jobs:
         with:
           distribution: temurin
           java-version: '21'
+      - name: Prepare web assets
+        run: mkdir -p www && cp index.html www/index.html
       - name: Install dependencies
         run: npm install
       - name: Add Android platform
