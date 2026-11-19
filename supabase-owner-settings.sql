@@ -18,5 +18,5 @@ create policy "Only admins manage commission settings" on public.platform_commis
 using (exists(select 1 from public.profiles p where p.id=auth.uid() and p.role='admin'))
 with check (exists(select 1 from public.profiles p where p.id=auth.uid() and p.role='admin'));
 
--- ترقية حساب المالك فقط بعد استبدال المعرّف أدناه بمعرّف UUID الصحيح:
--- update public.profiles set role='admin' where id='OWNER_USER_UUID';
+-- ترقية حساب المالك الذي ظهر في لوحة Authentication > Users:
+update public.profiles set role='admin' where id='5c3e7351-6747-4d3a-9aaf-014fff9655aa';
