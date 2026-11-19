@@ -1,6 +1,6 @@
 {
   "appId": "com.khedma.app",
   "appName": "خدمة",
-  "webDir": ".",
+  "webDir": "www",
   "server": {"androidScheme": "https"}
 }
