@@ -54,7 +54,7 @@ hr{border:0;border-top:1px solid var(--line);margin:18px 0}
 <script>
 const SUPABASE_URL="https://ycawavrgrettwxsdgssi.supabase.co";
 const SUPABASE_KEY="sb_publishable_NN7fLCH7DSQT6nh4jU72rg_VveeGeHs";
-const db=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+const db=supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{autoRefreshToken:true,persistSession:true,detectSessionInUrl:true,storage:window.localStorage,storageKey:"khedma-auth-v1"}});
 const governors=["القاهرة","الجيزة","الإسكندرية","القليوبية","الشرقية","الدقهلية","الغربية","المنوفية","البحيرة","كفر الشيخ","دمياط","بورسعيد","الإسماعيلية","السويس","شمال سيناء","جنوب سيناء","الفيوم","بني سويف","المنيا","أسيوط","سوهاج","قنا","الأقصر","أسوان","البحر الأحمر","الوادي الجديد","مطروح"];
 const cats=[["transport","🚗 المواصلات والمشاوير"],["market","🛒 البيع والشراء"],["property","🏠 العقارات"],["home_services","🔧 خدمات منزلية وصيانة"],["shipping","🚚 نقل وشحن وتوصيل"],["jobs","👷 وظائف وطلب عمال"],["food","🍗 الطعام والطلبات"],["beauty","🧴 العناية بالبشرة والشعر"]];
 let currentUser=null,currentProfile=null,selectedCategory="",rideMap=null,mapTarget="pickup",pickupMarker=null,destinationMarker=null,pickupPoint=null,destinationPoint=null;
@@ -151,7 +151,7 @@ async function completeRide(id){if(!confirm("هل انتهى المشوار با
 async function acceptRide(id){const {error}=await db.rpc("accept_ride",{p_ride_id:id});if(error){msg("تعذر قبول المشوار: "+error.message);return}msg("تم قبول المشوار");loadRides()}
 function safe(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 async function logout(){await db.auth.signOut();location.reload()}
-db.auth.getSession().then(async({data})=>{if(data.session){currentUser=data.session.user;await enterApp()}});
+msg("جارٍ استعادة تسجيل الدخول...");db.auth.getSession().then(async({data,error})=>{if(data?.session){currentUser=data.session.user;await enterApp()}else{msg(error?"سجّل الدخول مرة واحدة لحفظ الجلسة على هذا الجهاز":"أهلاً بك في خدمة — سجّل الدخول مرة واحدة، وسنحتفظ بجلسة حسابك على هذا الجهاز.");}});
 init();
 </script></body></html>
 <!-- rebuild after driver-completion updates -->
