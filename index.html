@@ -129,3 +129,4 @@ async function logout(){await db.auth.signOut();location.reload()}
 db.auth.getSession().then(async({data})=>{if(data.session){currentUser=data.session.user;await enterApp()}});
 init();
 </script></body></html>
+<!-- rebuild after driver-completion updates -->
