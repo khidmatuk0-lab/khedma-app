@@ -28,14 +28,14 @@ button:active{transform:scale(.985)}button:hover{filter:brightness(1.04)}
 #rideMap{height:300px;border-radius:15px;overflow:hidden;margin:10px 0;border:1px solid var(--line)}
 #home>.item:first-child{background:linear-gradient(120deg,#102a43,#087f8c);color:#fff;border:0;padding:18px}
 #home>.item:first-child b{font-size:17px}#home>.item:first-child p{color:#e2fffa}
-label{font-weight:700;color:#345266;font-size:14px}
+label{font-weight:700;color:#345266;font-size:14px}.password-wrap{display:flex;gap:7px;align-items:center}.password-wrap input{flex:1;min-width:0}.password-wrap .password-toggle{width:auto;min-width:104px;white-space:nowrap;padding:13px 10px;margin:7px 0}
 hr{border:0;border-top:1px solid var(--line);margin:18px 0}
 @media(min-width:600px){.grid{grid-template-columns:repeat(3,minmax(0,1fr))}main{padding:16px}header{padding-right:max(22px,calc((100% - 820px)/2))}}
 </style></head><body>
 <header><h1>خِدمة 🇪🇬</h1><p>كل اللي تحتاجه في مكان واحد — من المشوار لحد احتياجات بيتك وجمالك</p></header>
 <main><div id="message">أهلاً بك في خدمة</div>
 <section class="card" id="auth"><h2>الدخول أو إنشاء حساب</h2>
-<input id="email" type="email" placeholder="البريد الإلكتروني"><input id="password" type="password" placeholder="كلمة المرور (8 أحرف على الأقل)">
+<input id="email" type="email" placeholder="البريد الإلكتروني"><div class="password-wrap"><input id="password" type="password" placeholder="كلمة المرور (8 أحرف على الأقل)"><button type="button" class="password-toggle secondary" onclick="togglePassword()" aria-label="إظهار أو إخفاء كلمة المرور">👁 إظهار</button></div>
 <button onclick="login()">تسجيل الدخول</button><hr>
 <input id="name" placeholder="الاسم بالكامل"><input id="phone" placeholder="رقم الهاتف">
 <select id="role"><option value="customer">عميل / مشتري</option><option value="driver">سائق</option><option value="provider">مقدم خدمة / بائع</option></select>
@@ -62,6 +62,7 @@ const PLATFORM_FEE_RATE=0.05, PLATFORM_FEE_MIN=5;
 function estimatePlatformFee(amount){const n=Number(amount);return n>0?Math.min(n,Math.max(PLATFORM_FEE_MIN,n*PLATFORM_FEE_RATE)):0}
 function previewRideFee(){const n=Number(document.getElementById("ridePrice").value),f=estimatePlatformFee(n);document.getElementById("rideFeePreview").textContent=n>0?"العمولة التقديرية عند إتمام المشوار: "+f.toFixed(2)+" جنيه، وغير محصلة الآن.":"أدخل السعر لعرض تقدير العمولة (غير محصلة)."}
 function msg(t){document.getElementById("message").textContent=t}
+function togglePassword(){const p=document.getElementById("password"),b=document.querySelector(".password-toggle");const visible=p.type==="password";p.type=visible?"text":"password";b.textContent=visible?"🙈 إخفاء":"👁 إظهار";b.setAttribute("aria-label",visible?"إخفاء كلمة المرور":"إظهار كلمة المرور")}
 function fillSelect(id,first){document.getElementById(id).innerHTML='<option value="">'+first+'</option>'+governors.map(g=>'<option>'+g+'</option>').join("")}
 function init(){["filterGov","listingGov","rideGov"].forEach(id=>fillSelect(id,id==="filterGov"?"كل المحافظات":"اختر المحافظة"));document.getElementById("categories").innerHTML=cats.map(c=>'<button class="category" data-cat="'+c[0]+'">'+c[1]+'</button>').join("");document.querySelectorAll("[data-cat]").forEach(b=>b.onclick=()=>{selectedCategory=b.dataset.cat;loadListings()});document.getElementById("newCategory").innerHTML=cats.map(c=>'<option value="'+c[0]+'">'+c[1]+'</option>').join("");document.getElementById("filterGov").onchange=loadListings}
 function showSection(id){["home","create","rides","owner"].forEach(x=>document.getElementById(x).classList.toggle("hidden",x!==id))}function showOwner(){if(currentProfile?.role!=="admin"){msg("غير مصرح");return}showSection("owner");loadOwnerDashboard()}
