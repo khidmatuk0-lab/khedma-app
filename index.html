@@ -1,201 +1,54 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
-<link rel="manifest" href="/khedma-app/manifest.json"><head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>خدمة - مشاوير مصر</title>
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#075985"><title>خدمة | كل خدمات مصر</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-body{font-family:Arial;background:#f1f5f9;margin:0;color:#172554}
-header{background:#075985;color:white;text-align:center;padding:25px}
-main{max-width:550px;margin:20px auto;padding:15px}
-.card{background:white;padding:18px;border-radius:14px;margin-bottom:15px;box-shadow:0 2px 8px #ddd}
-input,select,button{box-sizing:border-box;width:100%;padding:13px;margin:7px 0;border:1px solid #cbd5e1;border-radius:8px;font-size:16px}
-button{background:#0284c7;color:white;border:0;font-weight:bold}
-button:disabled{background:#94a3b8}
-h2{font-size:20px}
-.hidden{display:none}
-.ride{border:1px solid #ddd;padding:12px;border-radius:10px;margin:10px 0}
-#message{padding:10px;color:#075985}
-</style>
-</head>
-<body>
-<header>
-<h1>خِدمة 🇪🇬</h1>
-<p>مشاويرك في كل محافظات مصر</p>
-</header>
-<main>
-<div id="message">أهلاً بك في تطبيق خدمة</div>
-
-<section class="card" id="auth">
-<h2>تسجيل الدخول أو حساب جديد</h2>
-<input id="email" type="email" placeholder="البريد الإلكتروني">
-<input id="password" type="password" placeholder="كلمة المرور">
-<button onclick="login()">تسجيل الدخول</button>
-<hr>
-<input id="name" placeholder="الاسم بالكامل">
-<input id="phone" placeholder="رقم الهاتف">
-<select id="role">
-<option value="customer">أنا عميل</option>
-<option value="driver">أنا سائق</option>
-</select>
-<button onclick="signup()">إنشاء حساب جديد</button>
-</section>
-
-<section class="card hidden" id="app">
+*{box-sizing:border-box}body{font-family:Arial,sans-serif;background:#f1f5f9;margin:0;color:#172554}header{background:#075985;color:#fff;text-align:center;padding:22px 14px}header h1{margin:0;font-size:30px}main{max-width:760px;margin:16px auto;padding:12px}.card{background:#fff;padding:16px;border-radius:14px;margin:12px 0;box-shadow:0 2px 8px #ddd}input,select,textarea,button{width:100%;padding:12px;margin:6px 0;border:1px solid #cbd5e1;border-radius:9px;font-size:16px}button{background:#0284c7;color:white;border:0;font-weight:bold;cursor:pointer}.secondary{background:#e0f2fe;color:#075985}.hidden{display:none!important}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.category{background:#e0f2fe;color:#075985;min-height:78px}.item{border:1px solid #dbeafe;border-radius:10px;padding:12px;margin:10px 0}.muted{color:#64748b;font-size:13px}#message{padding:10px;color:#075985}.tabs{display:flex;gap:7px;flex-wrap:wrap}.tabs button{width:auto;flex:1}.danger{background:#b91c1c}@media(min-width:600px){.grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+</style></head><body>
+<header><h1>خِدمة 🇪🇬</h1><p>كل الخدمات والطلبات والبيع والشراء في مكان واحد</p></header>
+<main><div id="message">أهلاً بك في خدمة</div>
+<section class="card" id="auth"><h2>الدخول أو إنشاء حساب</h2>
+<input id="email" type="email" placeholder="البريد الإلكتروني"><input id="password" type="password" placeholder="كلمة المرور (8 أحرف على الأقل)">
+<button onclick="login()">تسجيل الدخول</button><hr>
+<input id="name" placeholder="الاسم بالكامل"><input id="phone" placeholder="رقم الهاتف">
+<select id="role"><option value="customer">عميل / مشتري</option><option value="driver">سائق</option><option value="provider">مقدم خدمة / بائع</option></select>
+<button onclick="signup()">إنشاء حساب جديد</button><p class="muted">التسجيل بالبريد الإلكتروني. لا تشارك كلمة مرورك مع أي شخص.</p></section>
+<section class="card hidden" id="app"><div class="tabs"><button class="secondary" onclick="showHome()">الرئيسية</button><button class="secondary" onclick="showCreate()">أضف إعلانًا أو خدمة</button><button class="secondary" onclick="showRides()">المشاوير</button><button class="danger" onclick="logout()">خروج</button></div>
 <h2 id="welcome"></h2>
-<button onclick="logout()">تسجيل الخروج</button>
-
-<div id="customer" class="hidden">
-<h2>اطلب مشوارك</h2>
-<select id="governorate">
-<option value="">اختر المحافظة</option>
-<option>القاهرة</option><option>الجيزة</option>
-<option>الإسكندرية</option><option>القليوبية</option>
-<option>الشرقية</option><option>الدقهلية</option>
-<option>الغربية</option><option>المنوفية</option>
-<option>البحيرة</option><option>كفر الشيخ</option>
-<option>دمياط</option><option>بورسعيد</option>
-<option>الإسماعيلية</option><option>السويس</option>
-<option>شمال سيناء</option><option>جنوب سيناء</option>
-<option>الفيوم</option><option>بني سويف</option>
-<option>المنيا</option><option>أسيوط</option>
-<option>سوهاج</option><option>قنا</option>
-<option>الأقصر</option><option>أسوان</option>
-<option>البحر الأحمر</option><option>الوادي الجديد</option>
-<option>مطروح</option>
-</select>
-<input id="pickup" placeholder="مكان الانطلاق">
-<input id="destination" placeholder="مكان الوصول">
-<input id="price" type="number" placeholder="السعر المقترح بالجنيه">
-<button onclick="requestRide()">إرسال طلب المشوار</button>
-<h2>طلباتي</h2>
-<div id="myRides"></div>
-</div>
-
-<div id="driver" class="hidden">
-<h2>المشاوير المتاحة</h2>
-<button onclick="loadRides()">تحديث الطلبات</button>
-<div id="availableRides"></div>
-<h2>المشاوير التي قبلتها</h2>
-<div id="acceptedRides"></div>
-</div>
-</section>
-</main>
-
+<section id="home"><h2>اختار الخدمة اللي محتاجها</h2><div class="grid" id="categories"></div>
+<label>المحافظة</label><select id="filterGov"></select><div id="listingResults"></div></section>
+<section id="create" class="hidden"><h2>أضف منتجك أو خدمتك</h2>
+<select id="newCategory"></select><input id="listingTitle" placeholder="عنوان الإعلان"><textarea id="listingDescription" rows="3" placeholder="اكتب التفاصيل والسعر وطريقة التواصل"></textarea>
+<select id="listingGov"></select><input id="listingPrice" type="number" min="0" placeholder="السعر بالجنيه (اختياري)"><input id="listingPhone" placeholder="رقم التواصل">
+<button onclick="publishListing()">نشر الإعلان</button></section>
+<section id="rides" class="hidden"><h2>المشاوير</h2><div id="customerRide"><select id="rideGov"></select><input id="pickup" placeholder="مكان الانطلاق"><input id="destination" placeholder="مكان الوصول"><input id="ridePrice" type="number" placeholder="السعر المقترح بالجنيه"><button onclick="requestRide()">إرسال طلب مشوار</button><h3>طلباتي</h3><div id="myRides"></div></div>
+<div id="driverRide" class="hidden"><h3>الطلبات المتاحة</h3><button class="secondary" onclick="loadRides()">تحديث</button><div id="availableRides"></div><h3>المشاوير التي قبلتها</h3><div id="acceptedRides"></div></div></section>
+</section></main>
 <script>
-const SUPABASE_URL = "https://ycawavrgrettwxsdgssi.supabase.co";
-const SUPABASE_KEY = "sb_publishable_NN7fLCH7DSQT6nh4jU72rg_VveeGeHs;
-const db = supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
-let currentUser = null;
-let currentProfile = null;
-
-function msg(t){
- document.getElementById("message").textContent=t;
-}
-async function signup(){
- const email=document.getElementById("email").value.trim();
- const password=document.getElementById("password").value;
- if(!email || password.length<6){msg("اكتب البريد وكلمة مرور 6 أحرف على الأقل");return}
- const {error}=await db.auth.signUp({email,password});
- if(error){msg(error.message);return}
- msg("تم إنشاء الحساب. إذا طلب منك تأكيد البريد، افتح رسالة التأكيد ثم سجل الدخول.");
-}
-async function login(){
- const email=document.getElementById("email").value.trim();
- const password=document.getElementById("password").value;
- const {data,error}=await db.auth.signInWithPassword({email,password});
- if(error){msg("تعذر الدخول: "+error.message);return}
- currentUser=data.user;
- await enterApp();
-}
-async function enterApp(){
- document.getElementById("auth").classList.add("hidden");
- document.getElementById("app").classList.remove("hidden");
- const {data,error}=await db.from("profiles").select("*").eq("id",currentUser.id).maybeSingle();
- if(error){msg("تعذر قراءة الحساب: "+error.message);return}
- currentProfile=data;
- if(!currentProfile){
-  const name=document.getElementById("name").value.trim();
-  const phone=document.getElementById("phone").value.trim();
-  const role=document.getElementById("role").value;
-  if(!name || !phone){
-   msg("اكتب اسمك ورقم هاتفك ثم سجل الخروج وادخل مرة أخرى");
-   document.getElementById("auth").classList.remove("hidden");
-   return;
-  }
-  const {data:newProfile,error:insertError}=await db.from("profiles").insert({
-   id:currentUser.id,full_name:name,phone:phone,role:role
-  }).select().single();
-  if(insertError){msg("تعذر إنشاء بيانات الحساب: "+insertError.message);return}
-  currentProfile=newProfile;
- }
- document.getElementById("welcome").textContent="أهلاً "+(currentProfile.full_name||"بك");
- if(currentProfile.role==="driver"){
-  document.getElementById("driver").classList.remove("hidden");
-  document.getElementById("customer").classList.add("hidden");
-  loadRides();
- }else{
-  document.getElementById("customer").classList.remove("hidden");
-  document.getElementById("driver").classList.add("hidden");
-  loadMyRides();
- }
- msg("تم تسجيل الدخول بنجاح");
-}
-async function requestRide(){
- const governorate=document.getElementById("governorate").value;
- const pickup=document.getElementById("pickup").value.trim();
- const destination=document.getElementById("destination").value.trim();
- const price=Number(document.getElementById("price").value);
- if(!governorate||!pickup||!destination){msg("أكمل المحافظة ومكان الانطلاق والوصول");return}
- const {error}=await db.from("rides").insert({
-  customer_id:currentUser.id,
-  pickup_address:pickup,
-  destination_address:destination,
-  governorate:governorate,
-  price:price||null,
-  status:"pending"
- });
- if(error){msg("لم يتم إرسال الطلب: "+error.message);return}
- msg("تم إرسال طلب المشوار بنجاح");
- loadMyRides();
-}
-async function loadMyRides(){
- const {data,error}=await db.from("rides").select("*").eq("customer_id",currentUser.id).order("created_at",{ascending:false});
- if(error){msg(error.message);return}
- document.getElementById("myRides").innerHTML=(data||[]).map(r=>
- `<div class="ride">من: ${safe(r.pickup_address)}<br>إلى: ${safe(r.destination_address)}<br>المحافظة: ${safe(r.governorate)}<br>السعر: ${r.price??"غير محدد"} جنيه<br>الحالة: ${safe(r.status)}</div>`
- ).join("")||"لا توجد طلبات حتى الآن";
-}
-async function loadRides(){
- const {data,error}=await db.from("rides").select("*").eq("status","pending").is("driver_id",null).order("created_at",{ascending:false});
- if(error){msg("تعذر تحميل الطلبات: "+error.message);return}
- document.getElementById("availableRides").innerHTML=(data||[]).map(r=>
- `<div class="ride">من: ${safe(r.pickup_address)}<br>إلى: ${safe(r.destination_address)}<br>المحافظة: ${safe(r.governorate)}<br>السعر: ${r.price??"غير محدد"} جنيه<br><button onclick="acceptRide('${r.id}')">قبول المشوار</button></div>`
- ).join("")||"لا توجد مشاوير متاحة حالياً";
- const {data:accepted,error:acceptedError}=await db.from("rides").select("*").eq("driver_id",currentUser.id).order("created_at",{ascending:false});
- if(!acceptedError){
- document.getElementById("acceptedRides").innerHTML=(accepted||[]).map(r=>
- `<div class="ride">من: ${safe(r.pickup_address)}<br>إلى: ${safe(r.destination_address)}<br>الحالة: ${safe(r.status)}</div>`
- ).join("")||"لم تقبل مشاوير بعد";
- }
-}
-async function acceptRide(id){
- const {error}=await db.rpc("accept_ride",{p_ride_id:id});
- if(error){msg("تعذر قبول المشوار: "+error.message);return}
- msg("تم قبول المشوار بنجاح");
- loadRides();
-}
-function safe(value){
- return String(value??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-}
-async function logout(){
- await db.auth.signOut();
- location.reload();
-}
-db.auth.getSession().then(async({data})=>{
- if(data.session){currentUser=data.session.user;await enterApp()}
-});
-</script>
-</body>
-</html>
+const SUPABASE_URL="https://ycawavrgrettwxsdgssi.supabase.co";
+const SUPABASE_KEY="sb_publishable_NN7fLCH7DSQT6nh4jU72rg_VveeGeHs";
+const db=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+const governors=["القاهرة","الجيزة","الإسكندرية","القليوبية","الشرقية","الدقهلية","الغربية","المنوفية","البحيرة","كفر الشيخ","دمياط","بورسعيد","الإسماعيلية","السويس","شمال سيناء","جنوب سيناء","الفيوم","بني سويف","المنيا","أسيوط","سوهاج","قنا","الأقصر","أسوان","البحر الأحمر","الوادي الجديد","مطروح"];
+const cats=[["transport","🚗 المواصلات والمشاوير"],["market","🛒 البيع والشراء"],["property","🏠 العقارات"],["home_services","🔧 خدمات منزلية وصيانة"],["shipping","🚚 نقل وشحن وتوصيل"],["jobs","👷 وظائف وطلب عمال"],["food","🍗 الطعام والطلبات"]];
+let currentUser=null,currentProfile=null,selectedCategory="";
+function msg(t){document.getElementById("message").textContent=t}
+function fillSelect(id,first){document.getElementById(id).innerHTML='<option value="">'+first+'</option>'+governors.map(g=>'<option>'+g+'</option>').join("")}
+function init(){["filterGov","listingGov","rideGov"].forEach(id=>fillSelect(id,id==="filterGov"?"كل المحافظات":"اختر المحافظة"));document.getElementById("categories").innerHTML=cats.map(c=>'<button class="category" data-cat="'+c[0]+'">'+c[1]+'</button>').join("");document.querySelectorAll("[data-cat]").forEach(b=>b.onclick=()=>{selectedCategory=b.dataset.cat;loadListings()});document.getElementById("newCategory").innerHTML=cats.map(c=>'<option value="'+c[0]+'">'+c[1]+'</option>').join("");document.getElementById("filterGov").onchange=loadListings}
+function showSection(id){["home","create","rides"].forEach(x=>document.getElementById(x).classList.toggle("hidden",x!==id))}
+function showHome(){showSection("home");loadListings()}function showCreate(){showSection("create")}function showRides(){showSection("rides")}
+async function signup(){const email=document.getElementById("email").value.trim(),password=document.getElementById("password").value;if(!email||password.length<8){msg("اكتب البريد وكلمة مرور 8 أحرف على الأقل");return}const {data,error}=await db.auth.signUp({email,password});if(error){msg("تعذر إنشاء الحساب: "+error.message);return}if(data.user){const profile={full_name:document.getElementById("name").value.trim(),phone:document.getElementById("phone").value.trim(),role:document.getElementById("role").value};if(!profile.full_name||!profile.phone){msg("الحساب اتعمل. أكمل الاسم والهاتف عند أول دخول.");return}const {error:e}=await db.from("profiles").upsert({id:data.user.id,...profile});if(e){msg("الحساب اتعمل لكن تعذر حفظ الملف الشخصي: "+e.message);return}}msg("تم التسجيل. إذا طُلب تأكيد البريد، افتح رسالة التأكيد ثم سجل الدخول.")}
+async function login(){const {data,error}=await db.auth.signInWithPassword({email:document.getElementById("email").value.trim(),password:document.getElementById("password").value});if(error){msg("تعذر الدخول: "+error.message);return}currentUser=data.user;await enterApp()}
+async function enterApp(){document.getElementById("auth").classList.add("hidden");document.getElementById("app").classList.remove("hidden");const {data,error}=await db.from("profiles").select("*").eq("id",currentUser.id).maybeSingle();if(error){msg("خطأ في قراءة الحساب: "+error.message);return}currentProfile=data;if(!currentProfile){const full_name=document.getElementById("name").value.trim(),phone=document.getElementById("phone").value.trim(),role=document.getElementById("role").value;if(!full_name||!phone){msg("أدخل الاسم ورقم الهاتف في شاشة الدخول ثم أعد المحاولة");document.getElementById("auth").classList.remove("hidden");return}const {data:p,error:e}=await db.from("profiles").upsert({id:currentUser.id,full_name,phone,role}).select().single();if(e){msg("تعذر حفظ بيانات الحساب: "+e.message);return}currentProfile=p}document.getElementById("welcome").textContent="أهلاً "+(currentProfile.full_name||"بك");document.getElementById("driverRide").classList.toggle("hidden",currentProfile.role!=="driver");document.getElementById("customerRide").classList.toggle("hidden",currentProfile.role==="driver");showHome();msg("تم تسجيل الدخول")}
+async function publishListing(){const category=document.getElementById("newCategory").value,title=document.getElementById("listingTitle").value.trim(),description=document.getElementById("listingDescription").value.trim(),governorate=document.getElementById("listingGov").value,phone=document.getElementById("listingPhone").value.trim(),price=Number(document.getElementById("listingPrice").value)||null;if(!title||!description||!governorate||!phone){msg("أكمل العنوان والتفاصيل والمحافظة ورقم التواصل");return}const {error}=await db.from("listings").insert({owner_id:currentUser.id,category,title,description,governorate,price,contact_phone:phone,status:"active"});if(error){msg("لم ينشر الإعلان: "+error.message+" — قاعدة بيانات الإعلانات لم تُجهز بعد");return}msg("تم نشر إعلانك");showHome()}
+async function loadListings(){const box=document.getElementById("listingResults");if(!box)return;box.textContent="جارٍ تحميل الإعلانات...";let q=db.from("listings").select("*").eq("status","active").order("created_at",{ascending:false}).limit(50);if(selectedCategory)q=q.eq("category",selectedCategory);const gov=document.getElementById("filterGov").value;if(gov)q=q.eq("governorate",gov);const {data,error}=await q;if(error){box.textContent="قسم الإعلانات ينتظر إعداد قاعدة البيانات.";return}box.innerHTML=(data||[]).map(x=>'<article class="item"><b>'+safe(x.title)+'</b><p>'+safe(x.description)+'</p><p>📍 '+safe(x.governorate)+' | '+(x.price==null?"السعر عند التواصل":safe(x.price)+" جنيه")+'</p><p>☎ '+safe(x.contact_phone)+'</p></article>').join("")||"لا توجد إعلانات في هذا القسم حاليًا"}
+async function requestRide(){const governorate=document.getElementById("rideGov").value,pickup=document.getElementById("pickup").value.trim(),destination=document.getElementById("destination").value.trim(),price=Number(document.getElementById("ridePrice").value);if(!governorate||!pickup||!destination){msg("أكمل المحافظة والانطلاق والوصول");return}const {error}=await db.from("rides").insert({customer_id:currentUser.id,pickup_address:pickup,destination_address:destination,governorate,price:price||null,status:"pending"});if(error){msg("تعذر إرسال الطلب: "+error.message);return}msg("تم إرسال طلب المشوار");loadMyRides()}
+async function loadMyRides(){const {data,error}=await db.from("rides").select("*").eq("customer_id",currentUser.id).order("created_at",{ascending:false});if(error){msg(error.message);return}document.getElementById("myRides").innerHTML=(data||[]).map(r=>'<div class="item">من '+safe(r.pickup_address)+' إلى '+safe(r.destination_address)+' — '+safe(r.governorate)+' — '+safe(r.status)+'</div>').join("")||"لا توجد طلبات"}
+async function loadRides(){const {data,error}=await db.from("rides").select("*").eq("status","pending").is("driver_id",null).order("created_at",{ascending:false});if(error){msg(error.message);return}document.getElementById("availableRides").innerHTML=(data||[]).map(r=>'<div class="item">من '+safe(r.pickup_address)+' إلى '+safe(r.destination_address)+'<br>'+safe(r.governorate)+' — '+(r.price??"غير محدد")+' جنيه<button data-ride="'+r.id+'">قبول المشوار</button></div>').join("")||"لا توجد طلبات متاحة";document.querySelectorAll("[data-ride]").forEach(b=>b.onclick=()=>acceptRide(b.dataset.ride));const {data:a}=await db.from("rides").select("*").eq("driver_id",currentUser.id);document.getElementById("acceptedRides").innerHTML=(a||[]).map(r=>'<div class="item">'+safe(r.pickup_address)+' إلى '+safe(r.destination_address)+' — '+safe(r.status)+'</div>').join("")||"لم تقبل مشاوير بعد"}
+async function acceptRide(id){const {error}=await db.rpc("accept_ride",{p_ride_id:id});if(error){msg("تعذر قبول المشوار: "+error.message);return}msg("تم قبول المشوار");loadRides()}
+function safe(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+async function logout(){await db.auth.signOut();location.reload()}
+db.auth.getSession().then(async({data})=>{if(data.session){currentUser=data.session.user;await enterApp()}});
+init();
+</script></body></html>
