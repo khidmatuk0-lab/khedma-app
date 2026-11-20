@@ -46,6 +46,8 @@ hr{border:0;border-top:1px solid var(--line);margin:18px 0}
 <label>المحافظة</label><select id="filterGov"></select><div class="item"><h3>دليل الأماكن القريبة</h3><p class="muted">مطاعم وصيدليات وأسواق في قنا ودشنا. اتصل للتأكد من التوافر ومواعيد العمل قبل الذهاب.</p><input id="directorySearch" placeholder="ابحث باسم المكان أو المنطقة"><select id="directoryType"><option value="all">كل الأماكن</option><option value="restaurant">مطاعم</option><option value="pharmacy">صيدليات</option><option value="market">سوبر ماركت وأسواق</option></select><div id="localDirectory"></div></div><div id="listingResults"></div></section>
 <section id="create" class="hidden"><h2>أضف منتجك أو خدمتك</h2>
 <select id="newCategory"></select><input id="listingTitle" placeholder="عنوان الإعلان"><textarea id="listingDescription" rows="3" placeholder="اكتب التفاصيل والسعر وطريقة التواصل"></textarea>
+<label for="listingImages">صور الإعلان (حتى 5 صور، 5 ميجابايت للصورة)</label><input id="listingImages" type="file" accept="image/jpeg,image/png,image/webp" multiple>
+<label for="listingVideos">فيديو الإعلان (حتى فيديوهين، 50 ميجابايت للفيديو)</label><input id="listingVideos" type="file" accept="video/mp4,video/webm,video/quicktime" multiple>
 <select id="listingGov"></select><input id="listingPrice" type="number" min="0" placeholder="السعر بالجنيه (اختياري)"><input id="listingPhone" placeholder="رقم التواصل">
 <button onclick="publishListing()">نشر الإعلان</button></section>
 <section id="rides" class="hidden"><h2>المشاوير</h2><div id="customerRide"><select id="rideGov"></select><p class="muted">حدد نقطة الانطلاق أو الوصول من الخريطة، أو اكتب العنوان يدويًا.</p><div class="map-controls"><button type="button" class="secondary" id="pickPickup" onclick="setMapTarget('pickup')">تحديد الانطلاق</button><button type="button" class="secondary" id="pickDestination" onclick="setMapTarget('destination')">تحديد الوصول</button></div><div id="rideMap"></div><button type="button" class="secondary" onclick="useMyLocation()">استخدم موقعي للانطلاق</button><input id="pickup" placeholder="مكان الانطلاق"><input id="destination" placeholder="مكان الوصول"><div class="grid"><div><label>إحداثيات الانطلاق</label><input id="pickupCoords" readonly placeholder="لم يتم التحديد"></div><div><label>إحداثيات الوصول</label><input id="destinationCoords" readonly placeholder="لم يتم التحديد"></div></div><input id="ridePrice" type="number" min="0" placeholder="السعر المقترح بالجنيه" oninput="previewRideFee()"><div class="muted" id="rideFeePreview">أدخل السعر لعرض تقدير العمولة (غير محصلة).</div><button onclick="requestRide()">إرسال طلب مشوار</button><h3>طلباتي</h3><div id="myRides"></div></div>
@@ -166,7 +168,37 @@ async function moderateListing(id,status){
  if(error){msg("تعذر تعديل الإعلان: "+error.message);return}
  msg("تم تحديث حالة الإعلان");loadOwnerListings('all');
 }
-async function publishListing(){const category=document.getElementById("newCategory").value,title=document.getElementById("listingTitle").value.trim(),description=document.getElementById("listingDescription").value.trim(),governorate=document.getElementById("listingGov").value,phone=document.getElementById("listingPhone").value.trim(),price=Number(document.getElementById("listingPrice").value)||null;if(!title||!description||!governorate||!phone){msg("أكمل العنوان والتفاصيل والمحافظة ورقم التواصل");return}const {error}=await db.from("listings").insert({owner_id:currentUser.id,category,title,description,governorate,price,contact_phone:phone,status:"active"});if(error){msg("لم ينشر الإعلان: "+error.message+" — قاعدة بيانات الإعلانات لم تُجهز بعد");return}msg("تم نشر إعلانك");showHome()}
+async function uploadListingMedia(files,kind){
+ const urls=[];
+ for(const file of Array.from(files||[])){
+  const isVideo=file.type.startsWith("video/");
+  const maxBytes=isVideo?50*1024*1024:5*1024*1024;
+  if(isVideo!== (kind==="video")) throw new Error("نوع ملف غير مناسب");
+  if(file.size>maxBytes) throw new Error(isVideo?"حجم الفيديو يجب ألا يتجاوز 50 ميجابايت":"حجم الصورة يجب ألا يتجاوز 5 ميجابايت");
+  const ext=(file.name.split(".").pop()|| (isVideo?"mp4":"jpg")).toLowerCase().replace(/[^a-z0-9]/g,"");
+  const path=currentUser.id+"/"+Date.now()+"-"+Math.random().toString(36).slice(2)+"."+ext;
+  const {data,error}=await db.storage.from("listing-media").upload(path,file,{contentType:file.type,upsert:false});
+  if(error) throw error;
+  const {data:publicData}=db.storage.from("listing-media").getPublicUrl(data.path);
+  urls.push(publicData.publicUrl);
+ }
+ return urls;
+}
+async function publishListing(){
+ const category=document.getElementById("newCategory").value,title=document.getElementById("listingTitle").value.trim(),description=document.getElementById("listingDescription").value.trim(),governorate=document.getElementById("listingGov").value,phone=document.getElementById("listingPhone").value.trim(),price=Number(document.getElementById("listingPrice").value)||null;
+ const imageFiles=document.getElementById("listingImages").files,videoFiles=document.getElementById("listingVideos").files;
+ if(!title||!description||!governorate||!phone){msg("أكمل العنوان والتفاصيل والمحافظة ورقم التواصل");return}
+ const button=document.querySelector('#create button[onclick="publishListing()"]');if(button){button.disabled=true;button.textContent="جارٍ رفع الصور والفيديو ونشر الإعلان..."}
+ let uploadedImages=[],uploadedVideos=[];
+ try{
+  uploadedImages=await uploadListingMedia(imageFiles,"image");
+  uploadedVideos=await uploadListingMedia(videoFiles,"video");
+  const {error}=await db.from("listings").insert({owner_id:currentUser.id,category,title,description,governorate,price,contact_phone:phone,status:"active",image_urls:uploadedImages,video_urls:uploadedVideos});
+  if(error)throw error;
+  msg("تم نشر إعلانك بالصور والفيديو بنجاح");showHome();
+ }catch(error){msg("تعذر نشر الإعلان أو رفع الوسائط: "+error.message)}
+ finally{if(button){button.disabled=false;button.textContent="نشر الإعلان"}}
+}
 async function loadListings(){const box=document.getElementById("listingResults");if(!box)return;box.textContent="جارٍ تحميل الإعلانات...";let q=db.from("listings").select("*").eq("status","active").order("created_at",{ascending:false}).limit(50);if(selectedCategory)q=q.eq("category",selectedCategory);const gov=document.getElementById("filterGov").value;if(gov)q=q.eq("governorate",gov);const {data,error}=await q;if(error){box.textContent="قسم الإعلانات ينتظر إعداد قاعدة البيانات.";return}box.innerHTML=(data||[]).map(x=>'<article class="item"><b>'+safe(x.title)+'</b><p>'+safe(x.description)+'</p><p>📍 '+safe(x.governorate)+' | '+(x.price==null?"السعر عند التواصل":safe(x.price)+" جنيه")+'</p><p>☎ '+safe(x.contact_phone)+'</p></article>').join("")||"لا توجد إعلانات في هذا القسم حاليًا"}
 
 function setMapTarget(target){mapTarget=target;msg(target==="pickup"?"اضغط على الخريطة لتحديد الانطلاق":"اضغط على الخريطة لتحديد الوصول")}
