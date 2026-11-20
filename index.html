@@ -199,7 +199,20 @@ async function publishListing(){
  }catch(error){msg("تعذر نشر الإعلان أو رفع الوسائط: "+error.message)}
  finally{if(button){button.disabled=false;button.textContent="نشر الإعلان"}}
 }
-async function loadListings(){const box=document.getElementById("listingResults");if(!box)return;box.textContent="جارٍ تحميل الإعلانات...";let q=db.from("listings").select("*").eq("status","active").order("created_at",{ascending:false}).limit(50);if(selectedCategory)q=q.eq("category",selectedCategory);const gov=document.getElementById("filterGov").value;if(gov)q=q.eq("governorate",gov);const {data,error}=await q;if(error){box.textContent="قسم الإعلانات ينتظر إعداد قاعدة البيانات.";return}box.innerHTML=(data||[]).map(x=>'<article class="item"><b>'+safe(x.title)+'</b><p>'+safe(x.description)+'</p><p>📍 '+safe(x.governorate)+' | '+(x.price==null?"السعر عند التواصل":safe(x.price)+" جنيه")+'</p><p>☎ '+safe(x.contact_phone)+'</p></article>').join("")||"لا توجد إعلانات في هذا القسم حاليًا"}
+async function loadListings(){
+ const box=document.getElementById("listingResults");if(!box)return;box.textContent="جارٍ تحميل الإعلانات...";
+ let q=db.from("listings").select("*").eq("status","active").order("created_at",{ascending:false}).limit(50);
+ if(selectedCategory)q=q.eq("category",selectedCategory);
+ const gov=document.getElementById("filterGov").value;if(gov)q=q.eq("governorate",gov);
+ const {data,error}=await q;if(error){box.textContent="قسم الإعلانات ينتظر إعداد قاعدة البيانات.";return}
+ box.innerHTML=(data||[]).map(x=>{
+  const images=Array.isArray(x.image_urls)?x.image_urls:[];
+  const videos=Array.isArray(x.video_urls)?x.video_urls:[];
+  const media=images.map(url=>'<img src="'+safe(url)+'" alt="صورة الإعلان" loading="lazy" style="width:100%;max-width:320px;max-height:260px;object-fit:cover;border-radius:10px;margin:5px">').join("")
+   +videos.map(url=>'<video controls preload="metadata" playsinline style="width:100%;max-width:420px;max-height:300px;border-radius:10px;margin:5px"><source src="'+safe(url)+'"></video>').join("");
+  return '<article class="item"><b>'+safe(x.title)+'</b><div>'+media+'</div><p>'+safe(x.description)+'</p><p>📍 '+safe(x.governorate)+' | '+(x.price==null?"السعر عند التواصل":safe(x.price)+" جنيه")+'</p><p>☎ '+safe(x.contact_phone)+'</p></article>';
+ }).join("")||"لا توجد إعلانات في هذا القسم حاليًا";
+}
 
 function setMapTarget(target){mapTarget=target;msg(target==="pickup"?"اضغط على الخريطة لتحديد الانطلاق":"اضغط على الخريطة لتحديد الوصول")}
 function initRideMap(){
