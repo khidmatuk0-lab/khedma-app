@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#075985"><title>خدمة | كل خدمات مصر</title>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"><script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"><script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 <style>
 :root{--navy:#102a43;--teal:#087f8c;--mint:#dff7f1;--gold:#f4b942;--paper:#f4f8fb;--ink:#183247;--muted:#627789;--line:#e2ebf0}
 *{box-sizing:border-box}html{scroll-behavior:smooth}body{font-family:Tahoma,Arial,sans-serif;background:var(--paper);margin:0;color:var(--ink);line-height:1.6}
@@ -36,7 +36,7 @@ hr{border:0;border-top:1px solid var(--line);margin:18px 0}
 <main><div id="message">أهلاً بك في خدمة</div>
 <section class="card" id="auth"><h2>الدخول أو إنشاء حساب</h2>
 <input id="email" type="email" placeholder="البريد الإلكتروني" autocomplete="username" list="savedEmails"><datalist id="savedEmails"></datalist><p class="muted">سيتم حفظ البريد على هذا الجهاز فقط لتسهيل الدخول، ولن نحفظ كلمة المرور.</p><div class="password-wrap"><input id="password" type="password" placeholder="كلمة المرور (8 أحرف على الأقل)" autocomplete="current-password"><button id="passwordToggle" type="button" class="password-toggle secondary" aria-label="إظهار كلمة المرور" aria-pressed="false">👁 إظهار</button></div>
-<button id="loginButton" type="button" onclick="window.login()">تسجيل الدخول</button><button type="button" class="secondary" onclick="forgotPassword()">نسيت كلمة المرور؟ إرسال رابط تغيير</button><hr>
+<button id="loginButton" type="button" onclick="if(typeof window.login==='function'){window.login()}else{document.getElementById('message').textContent='تعذر تحميل مكوّن تسجيل الدخول. تأكد من الإنترنت ثم حدّث الصفحة.'}">تسجيل الدخول</button><button type="button" class="secondary" onclick="forgotPassword()">نسيت كلمة المرور؟ إرسال رابط تغيير</button><hr>
 <input id="name" placeholder="الاسم بالكامل"><input id="phone" placeholder="رقم الهاتف">
 <select id="role"><option value="customer">عميل / مشتري</option><option value="driver">سائق</option><option value="provider">مقدم خدمة / بائع</option></select>
 <button onclick="signup()">إنشاء حساب جديد</button><label style="display:flex;gap:8px;align-items:center;font-size:14px"><input id="agree" type="checkbox" style="width:auto"> أوافق على شروط الاستخدام وسياسة الخصوصية التجريبية.</label><p class="muted">نسخة تجريبية للاختبار فقط؛ لا تستخدمها لرحلات أو مدفوعات حقيقية. لا تشارك كلمة مرورك أو بياناتك الحساسة.</p></section>
