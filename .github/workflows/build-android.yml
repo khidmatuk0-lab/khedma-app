@@ -51,6 +51,25 @@ jobs:
           cat > android/app/src/main/res/values/ic_launcher_background.xml <<'EOF'
           <resources><color name="ic_launcher_background">#0755C9</color></resources>
           EOF
+      - name: Configure Android OAuth deep link
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('android/app/src/main/AndroidManifest.xml')
+          s=p.read_text()
+          marker='<activity android:name=".MainActivity"'
+          if marker not in s:
+              marker='<activity'
+              i=s.find(marker)
+              if i<0: raise SystemExit('Main activity declaration not found')
+          else: i=s.find(marker)
+          # Add the custom callback intent filter inside the MainActivity element.
+          end=s.find('>', i)
+          block='''\n            <intent-filter>\n                <action android:name="android.intent.action.VIEW" />\n                <category android:name="android.intent.category.DEFAULT" />\n                <category android:name="android.intent.category.BROWSABLE" />\n                <data android:scheme="com.khedma.app" android:host="login-callback" />\n            </intent-filter>'''
+          if 'android:scheme="com.khedma.app"' not in s:
+              s=s[:end+1]+block+s[end+1:]
+          p.write_text(s)
+          PY
       - name: Sync app
         run: npx cap sync android
       - name: Build debug APK
