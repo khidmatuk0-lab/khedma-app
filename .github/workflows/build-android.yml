@@ -29,6 +29,28 @@ jobs:
         run: npm install
       - name: Add Android platform
         run: npx cap add android
+      - name: Install Khedma launcher icon
+        run: |
+          mkdir -p android/app/src/main/res/drawable android/app/src/main/res/mipmap-anydpi-v26
+          cat > android/app/src/main/res/drawable/ic_khedma_foreground.xml <<'EOF'
+          <vector xmlns:android="http://schemas.android.com/apk/res/android"
+              android:width="108dp" android:height="108dp"
+              android:viewportWidth="108" android:viewportHeight="108">
+              <path android:fillColor="#FFFFFFFF" android:pathData="M54,13 C37,13 24,26 24,43 C24,63 54,94 54,94 C54,94 84,63 84,43 C84,26 71,13 54,13 Z"/>
+              <path android:fillColor="#FF0755C9" android:pathData="M54,25 C44,25 36,33 36,43 C36,53 44,61 54,61 C64,61 72,53 72,43 C72,33 64,25 54,25 Z"/>
+              <path android:fillColor="#FFFFFFFF" android:pathData="M49,34 L59,34 L59,39 L54,39 L54,44 L60,44 L60,49 L54,49 L54,55 L49,55 Z"/>
+          </vector>
+          EOF
+          cat > android/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml <<'EOF'
+          <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+              <background android:drawable="@color/ic_launcher_background"/>
+              <foreground android:drawable="@drawable/ic_khedma_foreground"/>
+          </adaptive-icon>
+          EOF
+          mkdir -p android/app/src/main/res/values
+          cat > android/app/src/main/res/values/ic_launcher_background.xml <<'EOF'
+          <resources><color name="ic_launcher_background">#0755C9</color></resources>
+          EOF
       - name: Sync app
         run: npx cap sync android
       - name: Build debug APK
