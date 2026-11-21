@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#075985"><title>خدمة | كل خدمات مصر</title>
+<meta name="theme-color" content="#075d70"><meta name="description" content="خِدمة — منصة تجمع المشاوير والبيع والشراء والعقارات والخدمات في مكان واحد بجميع محافظات مصر."><title>خِدمة | كل خدمات مصر في مكان واحد</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"><script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 <style>
 :root{--navy:#102a43;--teal:#087f8c;--mint:#dff7f1;--gold:#f4b942;--paper:#f4f8fb;--ink:#183247;--muted:#627789;--line:#e2ebf0}
@@ -31,8 +31,58 @@ button:active{transform:scale(.985)}button:hover{filter:brightness(1.04)}
 label{font-weight:700;color:#345266;font-size:14px}.password-wrap{display:flex;gap:7px;align-items:center}.password-wrap input{flex:1;min-width:0}.password-wrap .password-toggle{width:auto;min-width:104px;white-space:nowrap;padding:13px 10px;margin:7px 0}
 hr{border:0;border-top:1px solid var(--line);margin:18px 0}
 @media(min-width:600px){.grid{grid-template-columns:repeat(3,minmax(0,1fr))}main{padding:16px}header{padding-right:max(22px,calc((100% - 820px)/2))}}
+
+/* Khedma visual identity refresh */
+:root{--navy:#102a43;--teal:#087f8c;--mint:#e5faf4;--gold:#f6bd4b;--paper:#f5f8fc;--ink:#183247;--muted:#667b8e;--line:#e4edf3;--coral:#ff806e}
+body{background:radial-gradient(ellipse at 8% 12%,#e5f8f4 0,transparent 28%),linear-gradient(180deg,#f4f8fc 0%,#f8fbfd 55%,#f1f7f8 100%);color:var(--ink)}
+.site-header{padding:24px 18px 27px;border-radius:0 0 30px 30px;background:linear-gradient(120deg,#102a43 0%,#075d70 48%,#079b91 100%);box-shadow:0 12px 32px #0c435326;text-align:right;isolation:isolate}
+.site-header:before{content:"";position:absolute;z-index:-1;width:250px;height:250px;border-radius:50%;border:1px solid #ffffff20;left:-80px;bottom:-160px;box-shadow:0 0 0 24px #ffffff08,0 0 0 52px #ffffff06}
+.site-header:after{width:135px;height:135px;border:22px solid #ffffff10;left:auto;right:-55px;top:-70px}
+.brand-lockup{max-width:980px;margin:0 auto;display:flex;align-items:center;gap:12px}
+.brand-mark{width:58px;height:58px;display:grid;place-items:center;background:#ffffff18;border:1px solid #ffffff40;border-radius:19px;box-shadow:0 7px 20px #001b2b35;flex:0 0 auto}
+.brand-mark svg{width:43px;height:43px;filter:drop-shadow(0 3px 3px #001b2b35)}
+.brand-copy h1{font-size:31px;line-height:1.1;margin:0;font-weight:900;letter-spacing:.2px}
+.brand-copy span{display:block;color:#d8fff5;font-size:12px;margin-top:5px}
+.brand-country{margin-right:auto;border:1px solid #ffffff42;background:#ffffff16;color:#fff;padding:6px 11px;border-radius:30px;font-size:12px;font-weight:700}
+.header-tagline{max-width:980px;margin:17px auto 0!important;color:#f1fffc!important;font-size:16px!important;font-weight:700}
+.header-points{max-width:980px;margin:14px auto 0;display:flex;gap:8px;flex-wrap:wrap}
+.header-points span{font-size:11px;color:#edfffb;background:#ffffff16;border:1px solid #ffffff24;border-radius:30px;padding:5px 10px}
+main{max-width:980px;margin:20px auto;padding:12px}
+#message{border-radius:14px;box-shadow:0 4px 14px #087f8c0c}
+.card{border-radius:22px;padding:20px;border:1px solid #e7eef3;box-shadow:0 10px 30px #1832470b}
+h2{font-size:21px;letter-spacing:-.2px}
+input,select,textarea{border-radius:14px;border-color:#dce7ed;background:#fbfdff;transition:border-color .18s,box-shadow .18s}
+input:focus,select:focus,textarea:focus{outline:0;border-color:#0a928d;box-shadow:0 0 0 4px #0a928d18}
+button{border-radius:14px;background:linear-gradient(135deg,#087f8c,#0a9b91);box-shadow:0 6px 15px #087f8c26}
+button:hover{transform:translateY(-1px);box-shadow:0 8px 18px #087f8c30}
+.secondary{background:#e8f7f4;color:#08717a;border:1px solid #ccece5;box-shadow:none}
+.category{min-height:108px;border-radius:19px;background:linear-gradient(145deg,#fff 0%,#effaf8 100%);border:1px solid #dcefe9;box-shadow:0 7px 18px #0b786b0d;font-weight:800}
+.category:hover{background:linear-gradient(145deg,#f0fffa,#dff7f0);border-color:#a8ded1}
+.item{border-radius:17px;border-color:#e5edf2;box-shadow:0 5px 16px #19384b08}
+#home>.item:first-child{background:linear-gradient(115deg,#102a43 0%,#075d70 55%,#087f8c 100%);border-radius:20px;box-shadow:0 10px 22px #102a4320}
+.tabs{gap:8px}
+.tabs button{border-radius:13px}
+#rideMap{border-radius:18px}
+@media(max-width:480px){.site-header{padding:19px 15px 23px}.brand-mark{width:52px;height:52px;border-radius:17px}.brand-mark svg{width:39px;height:39px}.brand-copy h1{font-size:28px}.brand-country{font-size:11px;padding:5px 8px}.header-tagline{font-size:14px!important;line-height:1.7}.header-points{gap:6px}.header-points span{font-size:10px;padding:5px 8px}.card{padding:15px}.category{min-height:100px}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+
 </style></head><body>
-<header><h1>خِدمة 🇪🇬</h1><p>كل اللي تحتاجه في مكان واحد — من المشوار لحد احتياجات بيتك وجمالك</p></header>
+<header class="site-header">
+  <div class="brand-lockup">
+    <div class="brand-mark" aria-label="شعار خدمة">
+      <svg viewBox="0 0 64 64" role="img" aria-hidden="true">
+        <defs><linearGradient id="brandGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#b9fff0"/></linearGradient></defs>
+        <path d="M32 5C19.3 5 9 15.1 9 27.5 9 44 32 60 32 60s23-16 23-32.5C55 15.1 44.7 5 32 5Z" fill="url(#brandGrad)"/>
+        <path d="M20 22h24v6H20zm0 10h17v6H20z" fill="#087f8c"/>
+        <circle cx="43" cy="35" r="5" fill="#f4b942"/>
+      </svg>
+    </div>
+    <div class="brand-copy"><h1>خِدمة</h1><span>كل خدمات مصر في مكان واحد</span></div>
+    <span class="brand-country">🇪🇬 مصر</span>
+  </div>
+  <p class="header-tagline">مشوارك، طلباتك، واحتياجاتك… أقرب وأسهل مع خِدمة</p>
+  <div class="header-points"><span>✓ سهولة الاستخدام</span><span>✓ كل المحافظات</span><span>✓ أقسام متنوعة</span></div>
+</header>
 <main><div id="message">أهلاً بك في خدمة</div>
 <section class="card" id="auth"><h2>الدخول أو إنشاء حساب</h2>
 <input id="email" type="email" placeholder="البريد الإلكتروني" autocomplete="username" list="savedEmails"><datalist id="savedEmails"></datalist><p class="muted">سيتم حفظ البريد على هذا الجهاز فقط لتسهيل الدخول، ولن نحفظ كلمة المرور.</p><div class="password-wrap"><input id="password" type="password" placeholder="كلمة المرور (8 أحرف على الأقل)" autocomplete="current-password"><button id="passwordToggle" type="button" class="password-toggle secondary" aria-label="إظهار كلمة المرور" aria-pressed="false">👁 إظهار</button></div>
