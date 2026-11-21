@@ -121,6 +121,10 @@ jobs:
       - name: Sync app
         run: npx cap sync android
       - name: Build signed release APK
+        env:
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: cd android && chmod +x gradlew && ./gradlew assembleRelease
       - name: Verify APK signature
         run: |
