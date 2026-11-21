@@ -120,6 +120,38 @@ button:hover{transform:translateY(-1px);box-shadow:0 8px 18px #087f8c30}
 @media(min-width:680px){#listingResults{grid-template-columns:repeat(2,minmax(0,1fr))}.listing-card-media img,.listing-card-media video{height:190px}}
 @media(max-width:380px){.listing-toolbar{padding:12px}.listing-toolbar-heading h3{font-size:15px}.listing-card-body{padding:12px}.listing-card-media img,.listing-card-media video{height:175px}}
 
+
+/* Guided listing creation form */
+#create{padding:18px}
+.create-heading{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.create-heading h2{margin:0 0 3px}
+.create-heading p{margin:0}
+.create-heading-icon{width:48px;height:48px;flex:0 0 auto;display:grid;place-items:center;border-radius:16px;background:linear-gradient(145deg,#e3faf2,#d4f1eb);color:#087f8c;font-size:26px}
+.create-progress{display:flex;align-items:center;gap:8px;margin:15px 0 20px;color:#087f80;font-size:11px;font-weight:800}
+.create-progress i{height:1px;background:#cfe7e2;flex:1}
+.create-form{display:flex;flex-direction:column;gap:13px}
+.form-field{display:flex;flex-direction:column;gap:4px;min-width:0}
+.form-field>label:not(.upload-zone){font-size:13px;color:#28495c}
+.form-field label b{color:#d36b56}
+.form-field input,.form-field select,.form-field textarea{margin:3px 0 0}
+.form-field textarea{resize:vertical;min-height:105px}
+.field-hint{font-size:11px;color:#82939f;text-align:left}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.upload-zone{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:18px 10px;border:1.5px dashed #9bcfc4;border-radius:16px;background:linear-gradient(145deg,#f5fffb,#f0f8fa);text-align:center;cursor:pointer}
+.upload-zone>span{font-size:27px}
+.upload-zone strong{font-size:13px;color:#087b79}
+.upload-zone small{font-size:10px;color:#718796}
+.video-zone{border-color:#b7cbdc;background:linear-gradient(145deg,#f6faff,#f1f6fa)}
+.file-input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+.media-preview{display:flex;gap:8px;overflow-x:auto;padding:3px 0}
+.preview-tile{flex:0 0 112px;max-width:112px;display:flex;flex-direction:column;gap:4px}
+.preview-tile img,.preview-tile video{width:112px;height:88px;object-fit:cover;border-radius:11px;background:#eaf1f3}
+.preview-tile small{font-size:9px;color:#738795;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.publish-note{padding:11px 12px;border-radius:12px;background:#fff8e8;border:1px solid #f3e4bd;color:#755b22;font-size:11px;line-height:1.7}
+#publishListingButton{margin:2px 0 0;padding:15px;font-size:15px}
+#publishListingButton:disabled{opacity:.65;cursor:wait;transform:none}
+@media(max-width:390px){#create{padding:14px}.form-row{grid-template-columns:1fr}.create-progress{font-size:10px}}
+
 </style></head><body>
 <header class="site-header">
   <div class="brand-lockup">
@@ -152,12 +184,21 @@ button:hover{transform:translateY(-1px);box-shadow:0 8px 18px #087f8c30}
  <input id="listingSearch" type="search" placeholder="ابحث عن منتج أو خدمة أو محافظة..." autocomplete="off">
  <div class="listing-filters"><label>ترتيب النتائج<select id="listingSort"><option value="newest">الأحدث أولاً</option><option value="price_asc">السعر: من الأقل للأعلى</option><option value="price_desc">السعر: من الأعلى للأقل</option></select></label><span id="listingCount" class="muted" aria-live="polite"></span></div>
 </div><div id="listingResults" aria-live="polite"></div></section>
-<section id="create" class="hidden"><h2>أضف منتجك أو خدمتك</h2>
-<select id="newCategory"></select><input id="listingTitle" placeholder="عنوان الإعلان"><textarea id="listingDescription" rows="3" placeholder="اكتب التفاصيل والسعر وطريقة التواصل"></textarea>
-<label for="listingImages">صور الإعلان (حتى 5 صور، 5 ميجابايت للصورة)</label><input id="listingImages" type="file" accept="image/jpeg,image/png,image/webp" multiple>
-<label for="listingVideos">فيديو الإعلان (حتى فيديوهين، 50 ميجابايت للفيديو)</label><input id="listingVideos" type="file" accept="video/mp4,video/webm,video/quicktime" multiple>
-<select id="listingGov"></select><input id="listingPrice" type="number" min="0" placeholder="السعر بالجنيه (اختياري)"><input id="listingPhone" placeholder="رقم التواصل">
-<button onclick="publishListing()">نشر الإعلان</button></section>
+<section id="create" class="hidden">
+ <div class="create-heading"><span class="create-heading-icon">✦</span><div><h2>أضف إعلانك على خِدمة</h2><p class="muted">اعرض منتجك أو خدمتك لعملاء من جميع محافظات مصر.</p></div></div>
+ <div class="create-progress"><span>١. التفاصيل</span><i></i><span>٢. الصور</span><i></i><span>٣. النشر</span></div>
+ <div class="create-form">
+  <div class="form-field"><label for="newCategory">القسم <b>*</b></label><select id="newCategory" required></select></div>
+  <div class="form-field"><label for="listingTitle">عنوان الإعلان <b>*</b></label><input id="listingTitle" maxlength="90" placeholder="مثال: شقة للإيجار أو صيانة تكييف" required></div>
+  <div class="form-field"><label for="listingDescription">التفاصيل والوصف <b>*</b></label><textarea id="listingDescription" rows="4" maxlength="1500" placeholder="اكتب وصفًا واضحًا، والحالة والمميزات وطريقة الاستلام..." required></textarea><small class="field-hint" id="descriptionCount">0 / 1500 حرف</small></div>
+  <div class="form-field"><label>صور الإعلان</label><label class="upload-zone" for="listingImages"><span>📷</span><strong>اضغط لاختيار الصور</strong><small>حتى 5 صور · JPG أو PNG أو WEBP · 5 ميجابايت للصورة</small></label><input class="file-input" id="listingImages" type="file" accept="image/jpeg,image/png,image/webp" multiple><div id="imagePreview" class="media-preview" aria-live="polite"></div></div>
+  <div class="form-field"><label>فيديو الإعلان</label><label class="upload-zone video-zone" for="listingVideos"><span>🎬</span><strong>اضغط لاختيار فيديو</strong><small>حتى فيديوهين · MP4 أو WEBM أو MOV · 50 ميجابايت للفيديو</small></label><input class="file-input" id="listingVideos" type="file" accept="video/mp4,video/webm,video/quicktime" multiple><div id="videoPreview" class="media-preview" aria-live="polite"></div></div>
+  <div class="form-row"><div class="form-field"><label for="listingGov">المحافظة <b>*</b></label><select id="listingGov" required></select></div><div class="form-field"><label for="listingPrice">السعر بالجنيه</label><input id="listingPrice" type="number" min="0" step="0.01" inputmode="decimal" placeholder="اتركه فارغًا عند الاتفاق"></div></div>
+  <div class="form-field"><label for="listingPhone">رقم التواصل <b>*</b></label><input id="listingPhone" type="tel" inputmode="tel" maxlength="20" placeholder="مثال: 01xxxxxxxxx" required><small class="field-hint">سيظهر الرقم للمهتمين بالإعلان للاتصال بك.</small></div>
+  <div class="publish-note">🔒 لا تنشر بياناتك السرية أو كلمات المرور. راجع الإعلان قبل نشره.</div>
+  <button id="publishListingButton" type="button" onclick="publishListing()">نشر الإعلان الآن</button>
+ </div>
+</section>
 <section id="rides" class="hidden"><h2>المشاوير</h2><div id="customerRide"><select id="rideGov"></select><p class="muted">حدد نقطة الانطلاق أو الوصول من الخريطة، أو اكتب العنوان يدويًا.</p><div class="map-controls"><button type="button" class="secondary" id="pickPickup" onclick="setMapTarget('pickup')">تحديد الانطلاق</button><button type="button" class="secondary" id="pickDestination" onclick="setMapTarget('destination')">تحديد الوصول</button></div><div id="rideMap"></div><button type="button" class="secondary" onclick="useMyLocation()">استخدم موقعي للانطلاق</button><input id="pickup" placeholder="مكان الانطلاق"><input id="destination" placeholder="مكان الوصول"><div class="grid"><div><label>إحداثيات الانطلاق</label><input id="pickupCoords" readonly placeholder="لم يتم التحديد"></div><div><label>إحداثيات الوصول</label><input id="destinationCoords" readonly placeholder="لم يتم التحديد"></div></div><input id="ridePrice" type="number" min="0" placeholder="السعر المقترح بالجنيه" oninput="previewRideFee()"><div class="muted" id="rideFeePreview">أدخل السعر لعرض تقدير العمولة (غير محصلة).</div><button onclick="requestRide()">إرسال طلب مشوار</button><h3>طلباتي</h3><div id="myRides"></div></div>
 <div id="driverRide" class="hidden"><h3>الطلبات المتاحة</h3><button class="secondary" onclick="loadRides()">تحديث</button><div id="availableRides"></div><h3>المشاوير التي قبلتها</h3><div id="acceptedRides"></div></div></section>
 <section id="owner" class="hidden"><h2>لوحة المالك</h2><p class="muted">إدارة تشغيلية للمنصة. الأرقام لا تمثل إيرادات محصلة.</p><div id="ownerStats" class="grid"></div><h3>إدارة الإعلانات</h3><div class="tabs"><button class="secondary" onclick="loadOwnerListings('all')">الكل</button><button class="secondary" onclick="loadOwnerListings('active')">نشطة</button><button class="secondary" onclick="loadOwnerListings('paused')">موقوفة</button></div><div id="ownerListings"></div><h3>الحسابات والعمولات</h3><div class="grid" id="commissionStats"><div class="item">جارٍ تحميل الحسابات...</div></div><div class="item"><b>محفظة الاستلام:</b> Vodafone Cash باسم مالك التطبيق<br><span class="muted">التحويل غير مفعل حتى اعتماد حساب Paymob Payout وربط بياناته السرية داخل الخادم.</span></div><h3>سجل العمولات</h3><div id="commissionLedger" class="item">جارٍ تحميل السجل...</div><h3>إعدادات العمولات</h3><p class="muted">10% للأقسام الخاضعة للعمولة، بحد أدنى 5 جنيهات. الوظائف 0%. لا يوجد تحصيل حقيقي حتى تفعيل بوابة الدفع.</p><div id="ownerRates"></div><button onclick="saveCommissionSettings()">حفظ نسب العمولات</button><h3>ملاحظات تشغيلية</h3><div class="item">لا توجد بوابة دفع أو تحصيل إلكتروني متصلة بعد.</div><div class="item">لا تستخدم التطبيق لتشغيل رحلات فعلية قبل استكمال التراخيص والتحقق من السائقين وإجراءات السلامة.</div></section></section></main>
@@ -219,7 +260,7 @@ function init(){["filterGov","listingGov","rideGov"].forEach(id=>fillSelect(id,i
  food:["🍽️","أكل وطلبات","مطاعم وأكلات"],
  beauty:["✨","جمالك وعنايتك","منتجات وخدمات العناية"]
 };
-document.getElementById("categories").innerHTML=cats.map(c=>{const d=categoryDetails[c[0]]||["⭐",c[1],"اكتشف الخدمة"];return '<button class="category" data-cat="'+c[0]+'"><span class="category-icon" aria-hidden="true">'+d[0]+'</span><span class="category-copy"><strong>'+d[1]+'</strong><small>'+d[2]+'</small></span><span class="category-arrow" aria-hidden="true">←</span></button>'}).join("");document.querySelectorAll("[data-cat]").forEach(b=>b.onclick=()=>{selectedCategory=b.dataset.cat;loadListings()});document.getElementById("newCategory").innerHTML=cats.map(c=>'<option value="'+c[0]+'">'+c[1]+'</option>').join("");document.getElementById("filterGov").onchange=loadListings;document.getElementById("listingSearch").oninput=renderListingCards;document.getElementById("listingSort").onchange=renderListingCards;document.getElementById("clearCategory").onclick=resetListingFilters;document.getElementById("directorySearch").oninput=renderDirectory;document.getElementById("directoryType").onchange=renderDirectory;renderDirectory()}
+document.getElementById("categories").innerHTML=cats.map(c=>{const d=categoryDetails[c[0]]||["⭐",c[1],"اكتشف الخدمة"];return '<button class="category" data-cat="'+c[0]+'"><span class="category-icon" aria-hidden="true">'+d[0]+'</span><span class="category-copy"><strong>'+d[1]+'</strong><small>'+d[2]+'</small></span><span class="category-arrow" aria-hidden="true">←</span></button>'}).join("");document.querySelectorAll("[data-cat]").forEach(b=>b.onclick=()=>{selectedCategory=b.dataset.cat;loadListings()});document.getElementById("newCategory").innerHTML=cats.map(c=>'<option value="'+c[0]+'">'+c[1]+'</option>').join("");document.getElementById("filterGov").onchange=loadListings;document.getElementById("listingSearch").oninput=renderListingCards;document.getElementById("listingSort").onchange=renderListingCards;document.getElementById("clearCategory").onclick=resetListingFilters;document.getElementById("directorySearch").oninput=renderDirectory;document.getElementById("directoryType").onchange=renderDirectory;document.getElementById("listingDescription").addEventListener("input",e=>{document.getElementById("descriptionCount").textContent=e.target.value.length+" / 1500 حرف"});document.getElementById("listingImages").addEventListener("change",e=>previewListingFiles(e.target.files,"imagePreview","image"));document.getElementById("listingVideos").addEventListener("change",e=>previewListingFiles(e.target.files,"videoPreview","video"));renderDirectory()}
 function showSection(id){["home","create","rides","owner"].forEach(x=>document.getElementById(x).classList.toggle("hidden",x!==id))}function showOwner(){if(currentProfile?.role!=="admin"){msg("غير مصرح");return}showSection("owner");loadOwnerDashboard()}
 function showHome(){showSection("home");loadListings()}function showCreate(){showSection("create")}function showRides(){showSection("rides");if(currentProfile?.role==="driver")loadRides();else {initRideMap();loadMyRides()}}
 async function signup(){const email=document.getElementById("email").value.trim(),password=document.getElementById("password").value,full_name=document.getElementById("name").value.trim(),phone=document.getElementById("phone").value.trim(),role=document.getElementById("role").value;if(!email||password.length<8||!full_name||!phone){msg("أكمل البريد وكلمة المرور والاسم ورقم الهاتف");return}rememberEmail(email);if(!document.getElementById("agree").checked){msg("وافق على شروط الاستخدام التجريبية أولاً");return}const {data,error}=await db.auth.signUp({email,password,options:{data:{full_name,phone,role}}});if(error){msg("تعذر إنشاء الحساب: "+error.message);return}if(data.session){currentUser=data.user;const {error:e}=await db.from("profiles").upsert({id:data.user.id,full_name,phone,role});if(e){msg("تم إنشاء الدخول لكن تعذر حفظ الملف: "+e.message);return}await enterApp()}else{msg("تم إنشاء الحساب. افتح رسالة تأكيد البريد ثم ارجع وسجّل الدخول بنفس البيانات.")}}
@@ -307,20 +348,42 @@ async function uploadListingMedia(files,kind){
  }
  return urls;
 }
+const listingPreviewUrls=[];
+function clearListingPreviews(){
+ listingPreviewUrls.forEach(url=>URL.revokeObjectURL(url));listingPreviewUrls.length=0;
+ ["imagePreview","videoPreview"].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=""});
+}
+function previewListingFiles(fileList,targetId,kind){
+ const files=Array.from(fileList||[]),limit=kind==="image"?5:2,target=document.getElementById(targetId);
+ if(files.length>limit){msg(kind==="image"?"الحد الأقصى 5 صور":"الحد الأقصى فيديوهان");document.getElementById(kind==="image"?"listingImages":"listingVideos").value="";target.innerHTML="";return}
+ const allowed=kind==="image"?["image/jpeg","image/png","image/webp"]:["video/mp4","video/webm","video/quicktime"];
+ const max=kind==="image"?5*1024*1024:50*1024*1024;
+ const bad=files.find(file=>!allowed.includes(file.type)||file.size>max);
+ if(bad){msg(kind==="image"?"اختر صور JPG أو PNG أو WEBP بحجم لا يتجاوز 5 ميجابايت للصورة":"اختر فيديو MP4 أو WEBM أو MOV بحجم لا يتجاوز 50 ميجابايت");document.getElementById(kind==="image"?"listingImages":"listingVideos").value="";target.innerHTML="";return}
+ target.innerHTML=files.map(file=>{const url=URL.createObjectURL(file);listingPreviewUrls.push(url);return kind==="image"?'<div class="preview-tile"><img src="'+url+'" alt="معاينة الصورة"><small>'+safe(file.name)+'</small></div>':'<div class="preview-tile"><video src="'+url+'" controls playsinline></video><small>'+safe(file.name)+'</small></div>'}).join("");
+}
 async function publishListing(){
- const category=document.getElementById("newCategory").value,title=document.getElementById("listingTitle").value.trim(),description=document.getElementById("listingDescription").value.trim(),governorate=document.getElementById("listingGov").value,phone=document.getElementById("listingPhone").value.trim(),price=Number(document.getElementById("listingPrice").value)||null;
+ const category=document.getElementById("newCategory").value,title=document.getElementById("listingTitle").value.trim(),description=document.getElementById("listingDescription").value.trim(),governorate=document.getElementById("listingGov").value,phone=document.getElementById("listingPhone").value.trim(),priceRaw=document.getElementById("listingPrice").value.trim(),price=priceRaw===""?null:Number(priceRaw);
  const imageFiles=document.getElementById("listingImages").files,videoFiles=document.getElementById("listingVideos").files;
- if(!title||!description||!governorate||!phone){msg("أكمل العنوان والتفاصيل والمحافظة ورقم التواصل");return}
- const button=document.querySelector('#create button[onclick="publishListing()"]');if(button){button.disabled=true;button.textContent="جارٍ رفع الصور والفيديو ونشر الإعلان..."}
+ if(!category||!title||!description||!governorate||!phone){msg("أكمل البيانات المطلوبة التي بجوارها علامة *");return}
+ if(title.length<4||description.length<10){msg("اكتب عنوانًا أوضح ووصفًا لا يقل عن 10 أحرف");return}
+ if(priceRaw!==""&&(!Number.isFinite(price)||price<0)){msg("أدخل سعرًا صحيحًا أو اترك خانة السعر فارغة");return}
+ if(!/^[0-9+()\\s-]{7,20}$/.test(phone)){msg("راجع رقم التواصل وأدخله بشكل صحيح");return}
+ if(imageFiles.length>5||videoFiles.length>2){msg("تجاوزت الحد المسموح للصور أو الفيديوهات");return}
+ const button=document.getElementById("publishListingButton");if(button){button.disabled=true;button.textContent="جارٍ رفع الوسائط ونشر الإعلان..."}
  let uploadedImages=[],uploadedVideos=[];
  try{
   uploadedImages=await uploadListingMedia(imageFiles,"image");
   uploadedVideos=await uploadListingMedia(videoFiles,"video");
   const {error}=await db.from("listings").insert({owner_id:currentUser.id,category,title,description,governorate,price,contact_phone:phone,status:"active",image_urls:uploadedImages,video_urls:uploadedVideos});
   if(error)throw error;
-  msg("تم نشر إعلانك بالصور والفيديو بنجاح");showHome();
- }catch(error){msg("تعذر نشر الإعلان أو رفع الوسائط: "+error.message)}
- finally{if(button){button.disabled=false;button.textContent="نشر الإعلان"}}
+  msg("تم نشر إعلانك بنجاح. سيظهر في قائمة الإعلانات.");
+  ["listingTitle","listingDescription","listingPrice","listingPhone","listingImages","listingVideos"].forEach(id=>{const el=document.getElementById(id);if(el)el.value=""});
+  document.getElementById("descriptionCount").textContent="0 / 1500 حرف";
+  clearListingPreviews();
+  showHome();
+ }catch(error){msg("تعذر نشر الإعلان أو رفع الوسائط: "+(error.message||"خطأ غير معروف"))}
+ finally{if(button){button.disabled=false;button.textContent="نشر الإعلان الآن"}}
 }
 let cachedListings=[];
 function renderListingCards(){
