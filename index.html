@@ -79,6 +79,47 @@ button:hover{transform:translateY(-1px);box-shadow:0 8px 18px #087f8c30}
 .category:focus-visible{outline:3px solid #0a928d66;outline-offset:2px}
 @media(max-width:380px){.category{grid-template-columns:40px minmax(0,1fr) 14px;gap:8px;padding:11px 9px;min-height:96px}.category-icon{width:39px;height:39px;font-size:21px}.category-copy strong{font-size:12px}.category-copy small{font-size:10px}}
 
+
+/* Listing discovery and product cards */
+.listing-toolbar{margin:20px 0 13px;padding:17px;background:linear-gradient(145deg,#fff,#f1faf8);border:1px solid #dcefe9;border-radius:20px;box-shadow:0 7px 20px #153b4a0a}
+.listing-toolbar-heading{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.listing-toolbar-heading h3{margin:0;color:#123c50;font-size:18px}
+.listing-toolbar-heading p{margin:3px 0 8px}
+.listing-reset{width:auto;min-width:95px;padding:9px 12px;font-size:12px;white-space:nowrap}
+#listingSearch{margin:9px 0 4px;background:#fff}
+.listing-filters{display:flex;align-items:end;justify-content:space-between;gap:12px}
+.listing-filters label{flex:1;font-size:12px}
+.listing-filters select{margin:5px 0 0;padding:10px 12px;font-size:13px}
+.listing-filters .muted{white-space:nowrap;padding-bottom:14px}
+#listingResults{display:grid;grid-template-columns:1fr;gap:14px}
+.listing-card{overflow:hidden;background:#fff;border:1px solid #e3edf0;border-radius:20px;box-shadow:0 7px 22px #173b4a0b;transition:transform .18s,box-shadow .18s}
+.listing-card:hover{transform:translateY(-2px);box-shadow:0 12px 27px #173b4a13}
+.listing-card-media{display:flex;gap:7px;overflow-x:auto;scroll-snap-type:x mandatory;padding:9px;background:linear-gradient(120deg,#f0f8f7,#f7fafc);min-height:125px}
+.listing-card-media img,.listing-card-media video{flex:0 0 82%;width:82%;height:205px;object-fit:cover;border-radius:13px;scroll-snap-align:start;background:#e8f1f3}
+.listing-placeholder{width:100%;min-height:125px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:#087f8c}
+.listing-placeholder span{font-size:28px;color:#e2ad3e}
+.listing-placeholder b{font-size:18px}
+.listing-placeholder small{font-size:11px;color:#8294a0}
+.listing-card-body{padding:14px 15px 16px}
+.listing-card-meta{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.listing-category{font-size:11px;font-weight:800;color:#08756f;background:#e6f7f2;border-radius:30px;padding:5px 9px}
+.listing-location{font-size:11px;color:#718596}
+.listing-card-body h3{margin:10px 0 5px;color:#15384c;font-size:18px}
+.listing-description{margin:0;color:#617687;font-size:13px;line-height:1.8;white-space:pre-line;overflow-wrap:anywhere}
+.listing-card-footer{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;border-top:1px solid #edf2f4;margin-top:13px;padding-top:12px}
+.listing-price{font-size:16px;font-weight:900;color:#087f79}
+.listing-price.negotiable{font-size:12px;color:#7b8993;background:#f2f6f7;padding:6px 9px;border-radius:9px}
+.listing-contact{display:inline-flex;align-items:center;justify-content:center;text-decoration:none;background:linear-gradient(135deg,#087f8c,#0a9b91);color:#fff;font-size:12px;font-weight:800;border-radius:12px;padding:10px 14px;box-shadow:0 4px 12px #087f8c20}
+.listing-empty,.listing-loading{grid-column:1/-1;text-align:center;padding:26px 16px;border:1px dashed #cfe3e3;border-radius:18px;background:#fff;color:#607887}
+.listing-empty>span{display:block;font-size:28px;margin-bottom:5px}
+.listing-empty b{color:#173d50}
+.listing-empty p{font-size:13px}
+.listing-empty button{max-width:180px}
+@keyframes khedmaPulse{0%,100%{opacity:.45}50%{opacity:1}}
+.loading-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#0a958b;margin-left:7px;animation:khedmaPulse 1s infinite}
+@media(min-width:680px){#listingResults{grid-template-columns:repeat(2,minmax(0,1fr))}.listing-card-media img,.listing-card-media video{height:190px}}
+@media(max-width:380px){.listing-toolbar{padding:12px}.listing-toolbar-heading h3{font-size:15px}.listing-card-body{padding:12px}.listing-card-media img,.listing-card-media video{height:175px}}
+
 </style></head><body>
 <header class="site-header">
   <div class="brand-lockup">
@@ -106,7 +147,11 @@ button:hover{transform:translateY(-1px);box-shadow:0 8px 18px #087f8c30}
 <section class="card hidden" id="app"><div class="tabs"><button class="secondary" onclick="showHome()">الرئيسية</button><button class="secondary" onclick="showCreate()">أضف إعلانًا أو خدمة</button><button class="secondary" onclick="showRides()">المشاوير</button><button class="secondary" onclick="changePassword()">تغيير كلمة المرور</button><button class="secondary hidden" id="ownerTab" onclick="showOwner()">لوحة المالك</button><button class="danger" onclick="logout()">خروج</button></div>
 <h2 id="welcome"></h2>
 <section id="home"><div class="item"><b>نظام رسوم منصة خدمة (تجريبي)</b><p>العمولة المعتمدة مبدئيًا: 10% من قيمة العملية، بحد أدنى 5 جنيهات عند إتمامها. قسم الوظائف: بدون عمولة.</p><p class="muted">لا يتم تحصيل رسوم في النسخة التجريبية. التحصيل يتطلب بوابة دفع وتسويات واختبارات وموافقة واضحة قبل الدفع.</p></div><h2>اختار الخدمة اللي محتاجها</h2><div class="grid" id="categories"></div>
-<label>المحافظة</label><select id="filterGov"></select><div class="item"><h3>دليل الأماكن القريبة</h3><p class="muted">مطاعم وصيدليات وأسواق في قنا ودشنا. اتصل للتأكد من التوافر ومواعيد العمل قبل الذهاب.</p><input id="directorySearch" placeholder="ابحث باسم المكان أو المنطقة"><select id="directoryType"><option value="all">كل الأماكن</option><option value="restaurant">مطاعم</option><option value="pharmacy">صيدليات</option><option value="market">سوبر ماركت وأسواق</option></select><div id="localDirectory"></div></div><div id="listingResults"></div></section>
+<label>المحافظة</label><select id="filterGov"></select><div class="item"><h3>دليل الأماكن القريبة</h3><p class="muted">مطاعم وصيدليات وأسواق في قنا ودشنا. اتصل للتأكد من التوافر ومواعيد العمل قبل الذهاب.</p><input id="directorySearch" placeholder="ابحث باسم المكان أو المنطقة"><select id="directoryType"><option value="all">كل الأماكن</option><option value="restaurant">مطاعم</option><option value="pharmacy">صيدليات</option><option value="market">سوبر ماركت وأسواق</option></select><div id="localDirectory"></div></div><div class="listing-toolbar">
+ <div class="listing-toolbar-heading"><div><h3>اكتشف الإعلانات والخدمات</h3><p class="muted" id="listingContext">عروض وخدمات من مختلف المحافظات</p></div><button type="button" class="secondary listing-reset" id="clearCategory">كل الأقسام</button></div>
+ <input id="listingSearch" type="search" placeholder="ابحث عن منتج أو خدمة أو محافظة..." autocomplete="off">
+ <div class="listing-filters"><label>ترتيب النتائج<select id="listingSort"><option value="newest">الأحدث أولاً</option><option value="price_asc">السعر: من الأقل للأعلى</option><option value="price_desc">السعر: من الأعلى للأقل</option></select></label><span id="listingCount" class="muted" aria-live="polite"></span></div>
+</div><div id="listingResults" aria-live="polite"></div></section>
 <section id="create" class="hidden"><h2>أضف منتجك أو خدمتك</h2>
 <select id="newCategory"></select><input id="listingTitle" placeholder="عنوان الإعلان"><textarea id="listingDescription" rows="3" placeholder="اكتب التفاصيل والسعر وطريقة التواصل"></textarea>
 <label for="listingImages">صور الإعلان (حتى 5 صور، 5 ميجابايت للصورة)</label><input id="listingImages" type="file" accept="image/jpeg,image/png,image/webp" multiple>
@@ -174,7 +219,7 @@ function init(){["filterGov","listingGov","rideGov"].forEach(id=>fillSelect(id,i
  food:["🍽️","أكل وطلبات","مطاعم وأكلات"],
  beauty:["✨","جمالك وعنايتك","منتجات وخدمات العناية"]
 };
-document.getElementById("categories").innerHTML=cats.map(c=>{const d=categoryDetails[c[0]]||["⭐",c[1],"اكتشف الخدمة"];return '<button class="category" data-cat="'+c[0]+'"><span class="category-icon" aria-hidden="true">'+d[0]+'</span><span class="category-copy"><strong>'+d[1]+'</strong><small>'+d[2]+'</small></span><span class="category-arrow" aria-hidden="true">←</span></button>'}).join("");document.querySelectorAll("[data-cat]").forEach(b=>b.onclick=()=>{selectedCategory=b.dataset.cat;loadListings()});document.getElementById("newCategory").innerHTML=cats.map(c=>'<option value="'+c[0]+'">'+c[1]+'</option>').join("");document.getElementById("filterGov").onchange=loadListings;document.getElementById("directorySearch").oninput=renderDirectory;document.getElementById("directoryType").onchange=renderDirectory;renderDirectory()}
+document.getElementById("categories").innerHTML=cats.map(c=>{const d=categoryDetails[c[0]]||["⭐",c[1],"اكتشف الخدمة"];return '<button class="category" data-cat="'+c[0]+'"><span class="category-icon" aria-hidden="true">'+d[0]+'</span><span class="category-copy"><strong>'+d[1]+'</strong><small>'+d[2]+'</small></span><span class="category-arrow" aria-hidden="true">←</span></button>'}).join("");document.querySelectorAll("[data-cat]").forEach(b=>b.onclick=()=>{selectedCategory=b.dataset.cat;loadListings()});document.getElementById("newCategory").innerHTML=cats.map(c=>'<option value="'+c[0]+'">'+c[1]+'</option>').join("");document.getElementById("filterGov").onchange=loadListings;document.getElementById("listingSearch").oninput=renderListingCards;document.getElementById("listingSort").onchange=renderListingCards;document.getElementById("clearCategory").onclick=resetListingFilters;document.getElementById("directorySearch").oninput=renderDirectory;document.getElementById("directoryType").onchange=renderDirectory;renderDirectory()}
 function showSection(id){["home","create","rides","owner"].forEach(x=>document.getElementById(x).classList.toggle("hidden",x!==id))}function showOwner(){if(currentProfile?.role!=="admin"){msg("غير مصرح");return}showSection("owner");loadOwnerDashboard()}
 function showHome(){showSection("home");loadListings()}function showCreate(){showSection("create")}function showRides(){showSection("rides");if(currentProfile?.role==="driver")loadRides();else {initRideMap();loadMyRides()}}
 async function signup(){const email=document.getElementById("email").value.trim(),password=document.getElementById("password").value,full_name=document.getElementById("name").value.trim(),phone=document.getElementById("phone").value.trim(),role=document.getElementById("role").value;if(!email||password.length<8||!full_name||!phone){msg("أكمل البريد وكلمة المرور والاسم ورقم الهاتف");return}rememberEmail(email);if(!document.getElementById("agree").checked){msg("وافق على شروط الاستخدام التجريبية أولاً");return}const {data,error}=await db.auth.signUp({email,password,options:{data:{full_name,phone,role}}});if(error){msg("تعذر إنشاء الحساب: "+error.message);return}if(data.session){currentUser=data.user;const {error:e}=await db.from("profiles").upsert({id:data.user.id,full_name,phone,role});if(e){msg("تم إنشاء الدخول لكن تعذر حفظ الملف: "+e.message);return}await enterApp()}else{msg("تم إنشاء الحساب. افتح رسالة تأكيد البريد ثم ارجع وسجّل الدخول بنفس البيانات.")}}
@@ -277,19 +322,44 @@ async function publishListing(){
  }catch(error){msg("تعذر نشر الإعلان أو رفع الوسائط: "+error.message)}
  finally{if(button){button.disabled=false;button.textContent="نشر الإعلان"}}
 }
-async function loadListings(){
- const box=document.getElementById("listingResults");if(!box)return;box.textContent="جارٍ تحميل الإعلانات...";
- let q=db.from("listings").select("*").eq("status","active").order("created_at",{ascending:false}).limit(50);
- if(selectedCategory)q=q.eq("category",selectedCategory);
- const gov=document.getElementById("filterGov").value;if(gov)q=q.eq("governorate",gov);
- const {data,error}=await q;if(error){box.textContent="قسم الإعلانات ينتظر إعداد قاعدة البيانات.";return}
- box.innerHTML=(data||[]).map(x=>{
+let cachedListings=[];
+function renderListingCards(){
+ const box=document.getElementById("listingResults");if(!box)return;
+ const term=(document.getElementById("listingSearch")?.value||"").trim().toLocaleLowerCase("ar");
+ const sort=document.getElementById("listingSort")?.value||"newest";
+ let rows=cachedListings.filter(x=>!term||[x.title,x.description,x.governorate,categoryName(x.category)].some(v=>String(v||"").toLocaleLowerCase("ar").includes(term)));
+ if(sort==="price_asc")rows.sort((a,b)=>(a.price==null?Infinity:Number(a.price))-(b.price==null?Infinity:Number(b.price)));
+ else if(sort==="price_desc")rows.sort((a,b)=>(b.price==null?-Infinity:Number(b.price))-(a.price==null?-Infinity:Number(a.price)));
+ else rows.sort((a,b)=>new Date(b.created_at||0)-new Date(a.created_at||0));
+ const count=document.getElementById("listingCount");if(count)count.textContent="عدد النتائج: "+rows.length;
+ box.innerHTML=rows.map(x=>{
   const images=Array.isArray(x.image_urls)?x.image_urls:[];
   const videos=Array.isArray(x.video_urls)?x.video_urls:[];
-  const media=images.map(url=>'<img src="'+safe(url)+'" alt="صورة الإعلان" loading="lazy" style="width:100%;max-width:320px;max-height:260px;object-fit:cover;border-radius:10px;margin:5px">').join("")
-   +videos.map(url=>'<video controls preload="metadata" playsinline style="width:100%;max-width:420px;max-height:300px;border-radius:10px;margin:5px"><source src="'+safe(url)+'"></video>').join("");
-  return '<article class="item"><b>'+safe(x.title)+'</b><div>'+media+'</div><p>'+safe(x.description)+'</p><p>📍 '+safe(x.governorate)+' | '+(x.price==null?"السعر عند التواصل":safe(x.price)+" جنيه")+'</p><p>☎ '+safe(x.contact_phone)+'</p></article>';
- }).join("")||"لا توجد إعلانات في هذا القسم حاليًا";
+  const media=images.map((url,i)=>'<img src="'+safe(url)+'" alt="'+safe(x.title)+' - صورة '+(i+1)+'" loading="lazy">').join("")
+   +videos.map(url=>'<video controls preload="metadata" playsinline><source src="'+safe(url)+'"></video>').join("");
+  const phone=String(x.contact_phone||"").replace(/[^0-9+]/g,"");
+  const price=x.price==null||x.price===""?'<span class="listing-price negotiable">السعر عند التواصل</span>':'<span class="listing-price">'+safe(Number(x.price).toLocaleString("ar-EG"))+' جنيه</span>';
+  return '<article class="listing-card"><div class="listing-card-media">'+(media||'<div class="listing-placeholder"><span>✦</span><b>خِدمة</b><small>تفاصيل الإعلان لدى صاحبه</small></div>')+'</div><div class="listing-card-body"><div class="listing-card-meta"><span class="listing-category">'+safe(categoryName(x.category))+'</span><span class="listing-location">📍 '+safe(x.governorate)+'</span></div><h3>'+safe(x.title)+'</h3><p class="listing-description">'+safe(x.description)+'</p><div class="listing-card-footer">'+price+(phone?'<a class="listing-contact" href="tel:'+safe(phone)+'">اتصل بصاحب الإعلان</a>':'<span class="muted">بيانات التواصل غير متاحة</span>')+'</div></div></article>';
+ }).join("")||'<div class="listing-empty"><span>🔎</span><b>مفيش نتائج مطابقة حاليًا</b><p>جرّب كلمة بحث مختلفة أو اعرض كل الأقسام.</p><button type="button" class="secondary" onclick="resetListingFilters()">عرض كل النتائج</button></div>';
+}
+function resetListingFilters(){
+ const search=document.getElementById("listingSearch");if(search)search.value="";
+ const sort=document.getElementById("listingSort");if(sort)sort.value="newest";
+ selectedCategory=null;
+ loadListings();
+}
+async function loadListings(){
+ const box=document.getElementById("listingResults");if(!box)return;
+ box.innerHTML='<div class="listing-loading"><span class="loading-dot"></span> جارٍ تحميل الإعلانات والخدمات...</div>';
+ const context=document.getElementById("listingContext");
+ if(context)context.textContent=selectedCategory?("القسم: "+categoryName(selectedCategory)):"عروض وخدمات من مختلف المحافظات";
+ let q=db.from("listings").select("*").eq("status","active").order("created_at",{ascending:false}).limit(100);
+ if(selectedCategory)q=q.eq("category",selectedCategory);
+ const gov=document.getElementById("filterGov").value;if(gov)q=q.eq("governorate",gov);
+ const {data,error}=await q;
+ if(error){cachedListings=[];box.innerHTML='<div class="listing-empty"><b>تعذر تحميل الإعلانات حاليًا</b><p>حاول مرة أخرى بعد قليل.</p><button type="button" onclick="loadListings()">إعادة المحاولة</button></div>';return}
+ cachedListings=data||[];
+ renderListingCards();
 }
 
 function setMapTarget(target){mapTarget=target;msg(target==="pickup"?"اضغط على الخريطة لتحديد الانطلاق":"اضغط على الخريطة لتحديد الوصول")}
