@@ -92,9 +92,16 @@ jobs:
               exit 1
             fi
             export ANDROID_KEY_ALIAS="${KEY_ALIASES[0]}"
-            echo "ANDROID_KEY_ALIAS=$ANDROID_KEY_ALIAS" >> "$GITHUB_ENV"
             echo "Detected the single key alias in the keystore."
           fi
+          # Pass the resolved alias (whether supplied or detected) to later steps.
+          echo "ANDROID_KEY_ALIAS=$ANDROID_KEY_ALIAS" >> "$GITHUB_ENV"
+          # Confirm the alias exists and points to a private-key entry.
+          KEY_ENTRY="$(keytool -list -v -alias "$ANDROID_KEY_ALIAS" -keystore android/app/khedma-release.keystore -storepass "$ANDROID_KEYSTORE_PASSWORD")"
+          printf '%s\\n' "$KEY_ENTRY" | grep -q "PrivateKeyEntry" || {
+            echo "The configured alias is not a private-key entry."
+            exit 1
+          }
           python3 - <<'PY'
           from pathlib import Path
           p=Path('android/app/build.gradle')
@@ -123,9 +130,12 @@ jobs:
       - name: Build signed release APK
         env:
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
-        run: cd android && chmod +x gradlew && ./gradlew assembleRelease
+        run: |
+          test -n "$ANDROID_KEYSTORE_PASSWORD" || (echo "Missing ANDROID_KEYSTORE_PASSWORD in build step" && exit 1)
+          test -n "$ANDROID_KEY_PASSWORD" || (echo "Missing ANDROID_KEY_PASSWORD in build step" && exit 1)
+          test -n "$ANDROID_KEY_ALIAS" || (echo "Resolved ANDROID_KEY_ALIAS was not passed to build step" && exit 1)
+          cd android && chmod +x gradlew && ./gradlew assembleRelease
       - name: Verify APK signature
         run: |
           APK="android/app/build/outputs/apk/release/app-release.apk"
