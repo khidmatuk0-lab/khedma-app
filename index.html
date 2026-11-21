@@ -66,6 +66,19 @@ button:hover{transform:translateY(-1px);box-shadow:0 8px 18px #087f8c30}
 @media(max-width:480px){.site-header{padding:19px 15px 23px}.brand-mark{width:52px;height:52px;border-radius:17px}.brand-mark svg{width:39px;height:39px}.brand-copy h1{font-size:28px}.brand-country{font-size:11px;padding:5px 8px}.header-tagline{font-size:14px!important;line-height:1.7}.header-points{gap:6px}.header-points span{font-size:10px;padding:5px 8px}.card{padding:15px}.category{min-height:100px}}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
 
+
+/* Category cards: clear hierarchy and touch-friendly layout */
+#categories{gap:12px}
+.category{display:grid;grid-template-columns:48px minmax(0,1fr) 18px;align-items:center;gap:10px;text-align:right;min-height:104px;padding:13px 12px;direction:rtl}
+.category-icon{width:46px;height:46px;border-radius:15px;display:grid;place-items:center;background:linear-gradient(145deg,#e4faf3,#d5f1ed);font-size:24px;box-shadow:inset 0 0 0 1px #ccebe3}
+.category-copy{display:flex;flex-direction:column;gap:4px;min-width:0}
+.category-copy strong{font-size:14px;line-height:1.4;color:#123c50;font-weight:900}
+.category-copy small{font-size:11px;line-height:1.45;color:#718596;font-weight:500}
+.category-arrow{color:#0b8c88;font-size:20px;font-weight:900;transition:transform .18s}
+.category:hover .category-arrow{transform:translateX(-3px)}
+.category:focus-visible{outline:3px solid #0a928d66;outline-offset:2px}
+@media(max-width:380px){.category{grid-template-columns:40px minmax(0,1fr) 14px;gap:8px;padding:11px 9px;min-height:96px}.category-icon{width:39px;height:39px;font-size:21px}.category-copy strong{font-size:12px}.category-copy small{font-size:10px}}
+
 </style></head><body>
 <header class="site-header">
   <div class="brand-lockup">
@@ -151,7 +164,17 @@ const localPlaces=[
 {n:"سوبر ماركت بسيبس",t:"market",a:"شارع مصنع الغزل، حي شرق، قنا",p:"0963220888",area:"قنا",src:"دليل 140"}
 ];
 function renderDirectory(){const box=document.getElementById("localDirectory");if(!box)return;const q=(document.getElementById("directorySearch").value||"").trim().toLowerCase(),t=document.getElementById("directoryType").value;const rows=localPlaces.filter(x=>(t==="all"||x.t===t)&&(!q||(x.n+" "+x.a+" "+x.area).toLowerCase().includes(q)));box.innerHTML=rows.map(x=>'<article class="item"><b>'+safe(x.n)+'</b><p>'+safe(x.a)+'</p><p class="muted">'+safe(x.src)+'</p><div class="tabs"><a href="tel:'+x.p.replace(/[^0-9+]/g,"")+'"><button type="button">اتصال</button></a><a target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(x.n+" "+x.a)+'"><button type="button" class="secondary">الاتجاهات</button></a></div></article>').join("")||"لا توجد نتائج مطابقة حاليًا. لم تتوفر لدينا بيانات موثوقة منشورة للسمطا حتى الآن."}
-function init(){["filterGov","listingGov","rideGov"].forEach(id=>fillSelect(id,id==="filterGov"?"كل المحافظات":"اختر المحافظة"));document.getElementById("categories").innerHTML=cats.map(c=>'<button class="category" data-cat="'+c[0]+'">'+c[1]+'</button>').join("");document.querySelectorAll("[data-cat]").forEach(b=>b.onclick=()=>{selectedCategory=b.dataset.cat;loadListings()});document.getElementById("newCategory").innerHTML=cats.map(c=>'<option value="'+c[0]+'">'+c[1]+'</option>').join("");document.getElementById("filterGov").onchange=loadListings;document.getElementById("directorySearch").oninput=renderDirectory;document.getElementById("directoryType").onchange=renderDirectory;renderDirectory()}
+function init(){["filterGov","listingGov","rideGov"].forEach(id=>fillSelect(id,id==="filterGov"?"كل المحافظات":"اختر المحافظة"));const categoryDetails={
+ transport:["🚗","اطلب مشوارك بسهولة","ملاكي وتوكتوك وموتوسيكل"],
+ market:["🛍️","اعرض أو اشترِ","منتجات جديدة ومستعملة"],
+ property:["🏡","بيوت وعقارات","بيع وإيجار"],
+ home_services:["🧰","صيانة وخدمات البيت","فنيون ومساعدات منزلية"],
+ shipping:["🚚","انقل ووصّل","شحن ونقل وطلبات"],
+ jobs:["👷","فرص عمل","وظائف وطلب عمال"],
+ food:["🍽️","أكل وطلبات","مطاعم وأكلات"],
+ beauty:["✨","جمالك وعنايتك","منتجات وخدمات العناية"]
+};
+document.getElementById("categories").innerHTML=cats.map(c=>{const d=categoryDetails[c[0]]||["⭐",c[1],"اكتشف الخدمة"];return '<button class="category" data-cat="'+c[0]+'"><span class="category-icon" aria-hidden="true">'+d[0]+'</span><span class="category-copy"><strong>'+d[1]+'</strong><small>'+d[2]+'</small></span><span class="category-arrow" aria-hidden="true">←</span></button>'}).join("");document.querySelectorAll("[data-cat]").forEach(b=>b.onclick=()=>{selectedCategory=b.dataset.cat;loadListings()});document.getElementById("newCategory").innerHTML=cats.map(c=>'<option value="'+c[0]+'">'+c[1]+'</option>').join("");document.getElementById("filterGov").onchange=loadListings;document.getElementById("directorySearch").oninput=renderDirectory;document.getElementById("directoryType").onchange=renderDirectory;renderDirectory()}
 function showSection(id){["home","create","rides","owner"].forEach(x=>document.getElementById(x).classList.toggle("hidden",x!==id))}function showOwner(){if(currentProfile?.role!=="admin"){msg("غير مصرح");return}showSection("owner");loadOwnerDashboard()}
 function showHome(){showSection("home");loadListings()}function showCreate(){showSection("create")}function showRides(){showSection("rides");if(currentProfile?.role==="driver")loadRides();else {initRideMap();loadMyRides()}}
 async function signup(){const email=document.getElementById("email").value.trim(),password=document.getElementById("password").value,full_name=document.getElementById("name").value.trim(),phone=document.getElementById("phone").value.trim(),role=document.getElementById("role").value;if(!email||password.length<8||!full_name||!phone){msg("أكمل البريد وكلمة المرور والاسم ورقم الهاتف");return}rememberEmail(email);if(!document.getElementById("agree").checked){msg("وافق على شروط الاستخدام التجريبية أولاً");return}const {data,error}=await db.auth.signUp({email,password,options:{data:{full_name,phone,role}}});if(error){msg("تعذر إنشاء الحساب: "+error.message);return}if(data.session){currentUser=data.user;const {error:e}=await db.from("profiles").upsert({id:data.user.id,full_name,phone,role});if(e){msg("تم إنشاء الدخول لكن تعذر حفظ الملف: "+e.message);return}await enterApp()}else{msg("تم إنشاء الحساب. افتح رسالة تأكيد البريد ثم ارجع وسجّل الدخول بنفس البيانات.")}}
