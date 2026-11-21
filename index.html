@@ -334,7 +334,21 @@ async function login(){const email=document.getElementById("email").value.trim()
 window.login=login;
 
 const KHIDMA_TERMS_VERSION="2026-11-21-v1";
-async function recordTermsAcceptance(){if(!currentUser)return;const {error}=await db.from("terms_acceptances").upsert({user_id:currentUser.id,terms_version:KHIDMA_TERMS_VERSION,user_agent:navigator.userAgent.slice(0,300)},{onConflict:"user_id,terms_version",ignoreDuplicates:true});if(error)console.warn("Terms acceptance audit:",error.message)}
+async function recordTermsAcceptance(){
+ if(!currentUser)return false;
+ const {error}=await db.from("terms_acceptances").insert({user_id:currentUser.id,terms_version:KHIDMA_TERMS_VERSION,user_agent:navigator.userAgent.slice(0,300)});
+ if(error&&error.code!=="23505"){msg("تعذر حفظ موافقتك على الشروط: "+error.message);return false}
+ return true;
+}
+async function ensureTermsAcceptance(){
+ const {data,error}=await db.from("terms_acceptances").select("id").eq("user_id",currentUser.id).eq("terms_version",KHIDMA_TERMS_VERSION).maybeSingle();
+ if(error){msg("تعذر التحقق من سجل موافقتك على الشروط. حاول مرة أخرى.");return false}
+ if(data)return true;
+ document.getElementById("auth").classList.remove("hidden");document.getElementById("app").classList.add("hidden");
+ const checkbox=document.getElementById("agree");
+ if(!checkbox?.checked){msg("يرجى قراءة إقرار الوساطة وحدود المسؤولية والموافقة عليه قبل استخدام خِدمة.");return false}
+ return await recordTermsAcceptance();
+}
 let activeListingConversation=null,listingChatTimer=null,listingChatLoading=false;
 async function openListingChat(listingId,ownerId){
  if(!currentUser){msg("سجّل الدخول لبدء المحادثة.");return}if(ownerId===currentUser.id){msg("هذا إعلانك. افتح رسائل العملاء من لوحة مقدم الخدمة.");return}
@@ -354,7 +368,7 @@ async function loadListingChatModeration(){if(currentProfile?.role!=="admin")ret
 async function reviewListingChatReport(id){const {error}=await db.from("listing_chat_reports").update({status:"reviewed",reviewed_by:currentUser.id,reviewed_at:new Date().toISOString()}).eq("id",id);if(error){msg("تعذر تحديث البلاغ: "+error.message);return}msg("تم تسجيل مراجعة البلاغ.");loadListingChatModeration()}
 async function hideListingChatMessage(id){if(!confirm("إخفاء الرسالة عن طرفي المحادثة مع الاحتفاظ بها في سجل الإدارة؟"))return;const {error}=await db.from("listing_chat_messages").update({moderation_status:"hidden",moderated_by:currentUser.id,moderated_at:new Date().toISOString()}).eq("id",id);if(error){msg("تعذر إخفاء الرسالة: "+error.message);return}msg("تم إخفاء الرسالة.");loadListingChatModeration()}
 
-async function enterApp(){document.getElementById("auth").classList.add("hidden");document.getElementById("app").classList.remove("hidden");const {data,error}=await db.from("profiles").select("*").eq("id",currentUser.id).maybeSingle();if(error){msg("خطأ في قراءة الحساب: "+error.message);return}currentProfile=data;if(!currentProfile){const meta=currentUser.user_metadata||{},full_name=meta.full_name||document.getElementById("name").value.trim(),phone=meta.phone||document.getElementById("phone").value.trim(),role=meta.role||"customer";if(!full_name||!phone){msg("أكمل الاسم ورقم الهاتف في ملف الحساب ثم حاول مجددًا");document.getElementById("auth").classList.remove("hidden");const gb=document.getElementById("completeGoogleProfileButton");if(gb)gb.classList.remove("hidden");msg("تم التحقق من حساب Google. اكتب رقم هاتفك ثم اضغط إكمال التسجيل.");return}const {data:p,error:e}=await db.from("profiles").upsert({id:currentUser.id,full_name,phone,role}).select().single();if(e){msg("تعذر حفظ بيانات الحساب: "+e.message);return}currentProfile=p}document.getElementById("ownerTab").classList.toggle("hidden",currentProfile.role!=="admin");document.getElementById("providerTab").classList.toggle("hidden",!["provider","driver"].includes(currentProfile.role));document.getElementById("welcome").textContent="أهلاً "+(currentProfile.full_name||"بك");document.getElementById("driverRide").classList.toggle("hidden",currentProfile.role!=="driver");document.getElementById("customerRide").classList.toggle("hidden",currentProfile.role==="driver");showHome();startNotificationMonitoring();msg("تم تسجيل الدخول")}
+async function enterApp(){if(!await ensureTermsAcceptance())return;document.getElementById("auth").classList.add("hidden");document.getElementById("app").classList.remove("hidden");const {data,error}=await db.from("profiles").select("*").eq("id",currentUser.id).maybeSingle();if(error){msg("خطأ في قراءة الحساب: "+error.message);return}currentProfile=data;if(!currentProfile){const meta=currentUser.user_metadata||{},full_name=meta.full_name||document.getElementById("name").value.trim(),phone=meta.phone||document.getElementById("phone").value.trim(),role=meta.role||"customer";if(!full_name||!phone){msg("أكمل الاسم ورقم الهاتف في ملف الحساب ثم حاول مجددًا");document.getElementById("auth").classList.remove("hidden");const gb=document.getElementById("completeGoogleProfileButton");if(gb)gb.classList.remove("hidden");msg("تم التحقق من حساب Google. اكتب رقم هاتفك ثم اضغط إكمال التسجيل.");return}const {data:p,error:e}=await db.from("profiles").upsert({id:currentUser.id,full_name,phone,role}).select().single();if(e){msg("تعذر حفظ بيانات الحساب: "+e.message);return}currentProfile=p}document.getElementById("ownerTab").classList.toggle("hidden",currentProfile.role!=="admin");document.getElementById("providerTab").classList.toggle("hidden",!["provider","driver"].includes(currentProfile.role));document.getElementById("welcome").textContent="أهلاً "+(currentProfile.full_name||"بك");document.getElementById("driverRide").classList.toggle("hidden",currentProfile.role!=="driver");document.getElementById("customerRide").classList.toggle("hidden",currentProfile.role==="driver");showHome();startNotificationMonitoring();msg("تم تسجيل الدخول")}
 async function loadProviderDashboard(){
  if(!["provider","driver"].includes(currentProfile?.role)||!currentUser)return;
  const stats=document.getElementById("providerStats"),list=document.getElementById("providerListings"),ridesBox=document.getElementById("providerRides");
@@ -370,6 +384,7 @@ async function loadProviderDashboard(){
  const {data:mine,error}=await db.from("listings").select("id,title,category,governorate,price,status,created_at").eq("owner_id",currentUser.id).order("created_at",{ascending:false}).limit(50);
  if(error){if(list)list.textContent="تعذر تحميل إعلاناتك: "+error.message}else if(list){list.innerHTML=(mine||[]).map(x=>'<article class="item"><div class="provider-listing-row"><strong>'+safe(x.title)+'</strong><span class="ride-status '+(x.status==="active"?"completed":"pending")+'">'+(x.status==="active"?"نشط":safe(x.status||"غير محدد"))+'</span></div><p class="muted">'+safe(categoryName(x.category))+' · '+safe(x.governorate)+' · '+(x.price==null?"السعر عند التواصل":safe(Number(x.price).toLocaleString("ar-EG"))+" جنيه")+'</p><small class="muted">'+safe(rideDate(x.created_at))+'</small></article>').join("")||'<div class="ride-empty">لم تضف إعلانات بعد. ابدأ بإضافة أول إعلان لك.</div>'}
  if(ridesBox){if(currentProfile.role!=="driver"){document.getElementById("providerRideSummary").classList.add("hidden")}else{document.getElementById("providerRideSummary").classList.remove("hidden");ridesBox.innerHTML=(rideRows.data||[]).map(r=>'<article class="item"><span class="ride-status '+rideStatusClass(r.status)+'">'+rideStatusLabel(r.status)+'</span><p><b>'+safe(r.pickup_address)+'</b> ← <b>'+safe(r.destination_address)+'</b></p><p class="muted">'+safe(r.governorate)+' · '+(r.price==null?"السعر غير محدد":safe(Number(r.price).toLocaleString("ar-EG"))+" جنيه")+'</p></article>').join("")||'<div class="ride-empty">لا توجد مشاوير مسندة إلى حسابك حاليًا.</div>'}}
+ await loadMyListingChats();
 }
 
 async function loadOwnerUsers(){
