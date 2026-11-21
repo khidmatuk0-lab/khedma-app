@@ -57,11 +57,12 @@ jobs:
           from pathlib import Path
           p=Path('android/app/src/main/AndroidManifest.xml')
           s=p.read_text()
-          import re
-          matches=list(re.finditer(r'<activity\\b[^>]*>', s))
-          if len(matches) != 1:
-              raise SystemExit(f'Expected exactly one activity in generated manifest; found {len(matches)}')
-          end=matches[0].end()-1
+          i=s.find('<activity')
+          if i<0:
+              raise SystemExit('No activity element found in generated Android manifest')
+          end=s.find('>', i)
+          if end<0:
+              raise SystemExit('Malformed activity element in generated Android manifest')
           block='''\n            <intent-filter>\n                <action android:name="android.intent.action.VIEW" />\n                <category android:name="android.intent.category.DEFAULT" />\n                <category android:name="android.intent.category.BROWSABLE" />\n                <data android:scheme="com.khedma.app" android:host="login-callback" />\n            </intent-filter>'''
           if 'android:scheme="com.khedma.app"' not in s:
               s=s[:end+1]+block+s[end+1:]
