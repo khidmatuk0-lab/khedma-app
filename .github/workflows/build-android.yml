@@ -82,7 +82,7 @@ jobs:
           printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > android/app/khedma-release.keystore
           # If the alias secret is absent, safely infer it only when the keystore has exactly one entry.
           if [ -z "$ANDROID_KEY_ALIAS" ]; then
-            KEYSTORE_INFO="$(keytool -list -keystore android/app/khedma-release.keystore -storepass "$ANDROID_KEYSTORE_PASSWORD" 2>/dev/null)" || {
+            KEYSTORE_INFO="$(keytool -list -keystore android/app/khedma-release.keystore -storepass "$ANDROID_KEYSTORE_PASSWORD" )" || {
               echo "Could not open the Android keystore. Check ANDROID_KEYSTORE_PASSWORD."
               exit 1
             }
