@@ -368,7 +368,7 @@ async function publishListing(){
  if(!category||!title||!description||!governorate||!phone){msg("أكمل البيانات المطلوبة التي بجوارها علامة *");return}
  if(title.length<4||description.length<10){msg("اكتب عنوانًا أوضح ووصفًا لا يقل عن 10 أحرف");return}
  if(priceRaw!==""&&(!Number.isFinite(price)||price<0)){msg("أدخل سعرًا صحيحًا أو اترك خانة السعر فارغة");return}
- if(!/^[0-9+()\\s-]{7,20}$/.test(phone)){msg("راجع رقم التواصل وأدخله بشكل صحيح");return}
+ if(!/^[0-9+()\s-]{7,20}$/.test(phone)){msg("راجع رقم التواصل وأدخله بشكل صحيح");return}
  if(imageFiles.length>5||videoFiles.length>2){msg("تجاوزت الحد المسموح للصور أو الفيديوهات");return}
  const button=document.getElementById("publishListingButton");if(button){button.disabled=true;button.textContent="جارٍ رفع الوسائط ونشر الإعلان..."}
  let uploadedImages=[],uploadedVideos=[];
