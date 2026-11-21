@@ -118,7 +118,7 @@ jobs:
                   }
               }""", 1)
           build_number=int(os.environ['GITHUB_RUN_NUMBER'])
-          s,n=re.subn(r'versionCode\\s+\\d+', f'versionCode {build_number}', s, count=1)
+          s,n=re.subn(r'versionCode\s+\d+', f'versionCode {build_number}', s, count=1)
           if n != 1:
               raise SystemExit('Could not set a unique increasing Android versionCode')
           if 'signingConfig signingConfigs.release' not in s:
