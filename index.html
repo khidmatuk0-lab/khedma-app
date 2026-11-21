@@ -955,10 +955,19 @@ async function reviewSafetyReport(id,action){
  msg("تم تحديث حالة البلاغ.");await loadOwnerSafetyReports();
 }
 
+
+async function loadDriverRideHistory(){
+ const box=document.getElementById("acceptedRides");if(!box||!currentUser)return;
+ const {data,error}=await db.from("rides").select("*").eq("driver_id",currentUser.id).order("created_at",{ascending:false}).limit(50);
+ if(error){box.innerHTML='<div class="ride-empty">تعذر تحميل سجل مشاويرك.</div>';return}
+ box.innerHTML=(data||[]).map(r=>'<article data-driver-review-ride="'+safe(r.id)+'" class="ride-order-card"><div class="ride-order-top"><span class="ride-status '+rideStatusClass(r.status)+'">'+rideStatusLabel(r.status)+'</span><small>'+safe(rideDate(r.created_at))+'</small></div><div class="ride-route"><div><i class="route-dot start"></i><span><small>الانطلاق</small><b>'+safe(r.pickup_address)+'</b></span></div><div><i class="route-dot end"></i><span><small>الوجهة</small><b>'+safe(r.destination_address)+'</b></span></div></div><div class="ride-order-meta"><span>📍 '+safe(r.governorate)+'</span></div></article>').join("")||'<div class="ride-empty">لا يوجد سجل مشاوير حتى الآن.</div>';
+ attachRideChatButtons(box,data||[],"driver");
+}
+
 async function loadRides(){
  const available=document.getElementById("availableRides"),accepted=document.getElementById("acceptedRides");if(!available||!accepted)return;
  const {data:verification,error:verificationError}=await db.from("driver_verifications").select("status").eq("user_id",currentUser.id).maybeSingle();
- if(verificationError||verification?.status!=="approved"){available.innerHTML="<div class=\"ride-empty\">استقبال المشاوير متوقف حتى اعتماد توثيق السائق من إدارة خِدمة.</div>";return;}
+ if(verificationError||verification?.status!=="approved"){available.innerHTML="<div class=\"ride-empty\">استقبال المشاوير متوقف حتى اعتماد توثيق السائق من إدارة خِدمة.</div>";await loadDriverRideHistory();return;}
  available.innerHTML='<div class="ride-loading">جارٍ البحث عن الطلبات المتاحة...</div>';
  const {data,error}=await db.from("rides").select("*").eq("status","pending").is("driver_id",null).order("created_at",{ascending:false}).limit(50);
  if(error){available.innerHTML='<div class="ride-empty">تعذر تحميل الطلبات المتاحة. حاول مرة أخرى.</div>';return}
