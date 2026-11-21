@@ -140,8 +140,10 @@ jobs:
         run: |
           APK="android/app/build/outputs/apk/release/app-release.apk"
           test -s "$APK" || (echo "Release APK was not created" && exit 1)
-          apksigner verify --verbose "$APK"
-          apksigner verify --print-certs "$APK"
+          APKSIGNER="$(find "${ANDROID_HOME:-$ANDROID_SDK_ROOT}/build-tools" -type f -name apksigner 2>/dev/null | sort -V | tail -n 1)"
+          test -x "$APKSIGNER" || (echo "Android SDK apksigner tool was not found" && exit 1)
+          "$APKSIGNER" verify --verbose "$APK"
+          "$APKSIGNER" verify --print-certs "$APK"
       - name: Upload signed APK
         uses: actions/upload-artifact@v4
         with:
