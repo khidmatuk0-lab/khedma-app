@@ -568,6 +568,25 @@ function rideStatusLabel(status){
 }
 function rideStatusClass(status){return ["pending","accepted","completed","cancelled","rejected"].includes(status)?status:"pending"}
 function rideDate(value){if(!value)return "";const d=new Date(value);return Number.isNaN(d.getTime())?"":d.toLocaleString("ar-EG",{dateStyle:"medium",timeStyle:"short"})}
+async function submitRideReview(rideId,revieweeId){
+ const rating=Number(prompt('قيّم تجربتك من 1 إلى 5 نجوم'));
+ if(!Number.isInteger(rating)||rating<1||rating>5){msg('اختر تقييمًا صحيحًا من 1 إلى 5');return}
+ const comment=(prompt('تعليق اختياري (حتى 500 حرف)')||'').trim().slice(0,500);
+ const {error}=await db.from('ride_reviews').insert({ride_id:rideId,reviewer_id:currentUser.id,reviewee_id:revieweeId,rating,comment});
+ if(error){msg(error.code==='23505'?'سبق تقييم هذا المشوار.':'تعذر حفظ التقييم: '+error.message);return}
+ msg('شكرًا لك، تم حفظ تقييمك.');
+}
+function attachRideReviewButtons(cards,rows,role){
+ cards.querySelectorAll('[data-review-ride],[data-driver-review-ride]').forEach(card=>{
+  const rideId=card.getAttribute(role==='customer'?'data-review-ride':'data-driver-review-ride');
+  const ride=rows.find(x=>String(x.id)===rideId);
+  if(!ride||ride.status!=='completed')return;
+  const revieweeId=role==='customer'?ride.driver_id:ride.customer_id;
+  if(!revieweeId)return;
+  const button=document.createElement('button');button.type='button';button.className='secondary';button.textContent='⭐ قيّم الطرف الآخر';
+  button.addEventListener('click',()=>submitRideReview(ride.id,revieweeId));card.appendChild(button);
+ });
+}
 async function loadMyRides(){
  const box=document.getElementById("myRides");if(!box)return;
  box.innerHTML='<div class="ride-loading">جارٍ تحميل طلباتك...</div>';
@@ -576,8 +595,9 @@ async function loadMyRides(){
  const rows=data||[];
  box.innerHTML=rows.map(r=>{
   const coords=(r.pickup_lat!=null&&r.pickup_lng!=null)?'<a class="ride-map-link" target="_blank" rel="noopener" href="https://www.openstreetmap.org/directions?engine=fossgis_osrm_car&route='+encodeURIComponent(r.pickup_lat+","+r.pickup_lng+";"+(r.destination_lat??r.pickup_lat)+","+(r.destination_lng??r.pickup_lng))+'">عرض خط السير على الخريطة</a>':"";
-  return '<article class="ride-order-card"><div class="ride-order-top"><span class="ride-status '+rideStatusClass(r.status)+'">'+rideStatusLabel(r.status)+'</span><small>'+safe(rideDate(r.created_at))+'</small></div><div class="ride-route"><div><i class="route-dot start"></i><span><small>نقطة الانطلاق</small><b>'+safe(r.pickup_address)+'</b></span></div><div><i class="route-dot end"></i><span><small>الوجهة</small><b>'+safe(r.destination_address)+'</b></span></div></div><div class="ride-order-meta"><span>📍 '+safe(r.governorate)+'</span><strong>'+(r.price==null?"السعر غير محدد":safe(Number(r.price).toLocaleString("ar-EG"))+" جنيه")+'</strong></div>'+coords+'</article>';
+  return '<article data-review-ride="'+safe(r.id)+'" class="ride-order-card"><div class="ride-order-top"><span class="ride-status '+rideStatusClass(r.status)+'">'+rideStatusLabel(r.status)+'</span><small>'+safe(rideDate(r.created_at))+'</small></div><div class="ride-route"><div><i class="route-dot start"></i><span><small>نقطة الانطلاق</small><b>'+safe(r.pickup_address)+'</b></span></div><div><i class="route-dot end"></i><span><small>الوجهة</small><b>'+safe(r.destination_address)+'</b></span></div></div><div class="ride-order-meta"><span>📍 '+safe(r.governorate)+'</span><strong>'+(r.price==null?"السعر غير محدد":safe(Number(r.price).toLocaleString("ar-EG"))+" جنيه")+'</strong></div>'+coords+'</article>';
  }).join("")||'<div class="ride-empty">لا توجد طلبات حتى الآن. ابدأ بطلب مشوارك الأول.</div>';
+ attachRideReviewButtons(box,rows,'customer');
 }
 async function startRidePayment(rideId){msg("جارٍ تجهيز صفحة الدفع...");const {data,error}=await db.functions.invoke("paymob-checkout",{body:{ride_id:rideId}});if(error){msg("تعذر الاتصال بخدمة الدفع. تأكد من إعداد حساب Paymob.");return}if(data?.error){msg(data.error);return}if(data?.checkout_url){window.location.href=data.checkout_url;return}msg("لم يصل رابط الدفع من بوابة Paymob")}
 async function loadRides(){
@@ -593,8 +613,9 @@ async function loadRides(){
  if(ids.length){const {data:p}=await db.from("payment_records").select("reference_id,status,amount").in("reference_id",ids).eq("purpose","ride_fee").eq("user_id",currentUser.id);pays=p||[]}
  accepted.innerHTML=(a||[]).map(r=>{
   const p=pays.find(x=>x.reference_id===r.id);
-  return '<article class="ride-order-card"><div class="ride-order-top"><span class="ride-status '+rideStatusClass(r.status)+'">'+rideStatusLabel(r.status)+'</span><small>'+safe(rideDate(r.created_at))+'</small></div><div class="ride-route"><div><i class="route-dot start"></i><span><small>الانطلاق</small><b>'+safe(r.pickup_address)+'</b></span></div><div><i class="route-dot end"></i><span><small>الوجهة</small><b>'+safe(r.destination_address)+'</b></span></div></div><div class="ride-order-meta"><span>📍 '+safe(r.governorate)+'</span><strong>'+(r.price==null?"السعر غير محدد":safe(Number(r.price).toLocaleString("ar-EG"))+" جنيه")+'</strong></div>'+(r.status==="accepted"?'<button class="ride-complete-button" data-complete="'+safe(r.id)+'">تأكيد انتهاء المشوار</button>':'')+(p?.status==="paid"?'<p class="ride-paid-note">تم سداد العمولة: '+safe(Number(p.amount).toFixed(2))+' جنيه</p>':(r.price>0?'<button class="secondary" data-pay="'+safe(r.id)+'">سداد عمولة المنصة</button><p class="muted">العمولة على مقدم الخدمة، ولا تُحصّل من العميل.</p>':''))+'</article>';
+  return '<article data-driver-review-ride="'+safe(r.id)+'" class="ride-order-card"><div class="ride-order-top"><span class="ride-status '+rideStatusClass(r.status)+'">'+rideStatusLabel(r.status)+'</span><small>'+safe(rideDate(r.created_at))+'</small></div><div class="ride-route"><div><i class="route-dot start"></i><span><small>الانطلاق</small><b>'+safe(r.pickup_address)+'</b></span></div><div><i class="route-dot end"></i><span><small>الوجهة</small><b>'+safe(r.destination_address)+'</b></span></div></div><div class="ride-order-meta"><span>📍 '+safe(r.governorate)+'</span><strong>'+(r.price==null?"السعر غير محدد":safe(Number(r.price).toLocaleString("ar-EG"))+" جنيه")+'</strong></div>'+(r.status==="accepted"?'<button class="ride-complete-button" data-complete="'+safe(r.id)+'">تأكيد انتهاء المشوار</button>':'')+(p?.status==="paid"?'<p class="ride-paid-note">تم سداد العمولة: '+safe(Number(p.amount).toFixed(2))+' جنيه</p>':(r.price>0?'<button class="secondary" data-pay="'+safe(r.id)+'">سداد عمولة المنصة</button><p class="muted">العمولة على مقدم الخدمة، ولا تُحصّل من العميل.</p>':''))+'</article>';
  }).join("")||'<div class="ride-empty">لم تقبل أي مشاوير بعد.</div>';
+ attachRideReviewButtons(accepted,a||[],'driver');
  accepted.querySelectorAll("[data-complete]").forEach(b=>b.onclick=()=>completeRide(b.dataset.complete));
  accepted.querySelectorAll("[data-pay]").forEach(b=>b.onclick=()=>startRidePayment(b.dataset.pay));
 }
