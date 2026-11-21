@@ -773,7 +773,7 @@ async function enableBrowserNotifications(){
  if(!("Notification" in window)){msg("المتصفح لا يدعم تنبيهات الهاتف. ستظل التنبيهات ظاهرة داخل التطبيق.");return}
  try{const permission=await Notification.requestPermission();msg(permission==="granted"?"تم تفعيل تنبيهات الهاتف":"لم يتم السماح بالتنبيهات. يمكنك متابعتها من داخل التطبيق.");}catch(e){msg("تعذر طلب إذن التنبيهات على هذا الجهاز.")}
 }
-function startNotificationMonitoring(){
+async function startNotificationMonitoring(){
  if(notificationTimer)clearInterval(notificationTimer);
  notificationSeenRides=null;appNotifications=[];renderAppNotifications();
  const check=async()=>{
