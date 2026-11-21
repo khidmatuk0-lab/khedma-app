@@ -8,6 +8,8 @@ on:
       - 'package.json'
       - 'capacitor.config.json'
       - '.github/workflows/build-android.yml'
+permissions:
+  contents: write
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -80,13 +82,12 @@ jobs:
           test -n "$ANDROID_KEYSTORE_PASSWORD" || (echo "Missing ANDROID_KEYSTORE_PASSWORD secret" && exit 1)
           test -n "$ANDROID_KEY_PASSWORD" || (echo "Missing ANDROID_KEY_PASSWORD secret" && exit 1)
           printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > android/app/khedma-release.keystore
-          # If the alias secret is absent, safely infer it only when the keystore has exactly one entry.
           if [ -z "$ANDROID_KEY_ALIAS" ]; then
-            KEYSTORE_INFO="$(keytool -list -keystore android/app/khedma-release.keystore -storepass "$ANDROID_KEYSTORE_PASSWORD" )" || {
+            KEYSTORE_INFO="$(keytool -list -keystore android/app/khedma-release.keystore -storepass "$ANDROID_KEYSTORE_PASSWORD")" || {
               echo "Could not open the Android keystore. Check ANDROID_KEYSTORE_PASSWORD."
               exit 1
             }
-            mapfile -t KEY_ALIASES < <(printf '%s\\n' "$KEYSTORE_INFO" | awk -F, '/,/{print $1}')
+            mapfile -t KEY_ALIASES < <(printf '%s\n' "$KEYSTORE_INFO" | awk -F, '/,/{print $1}')
             if [ "${#KEY_ALIASES[@]}" -ne 1 ] || [ -z "${KEY_ALIASES[0]}" ]; then
               echo "Keystore alias is ambiguous. Add the exact ANDROID_KEY_ALIAS secret in GitHub Actions."
               exit 1
@@ -94,11 +95,9 @@ jobs:
             export ANDROID_KEY_ALIAS="${KEY_ALIASES[0]}"
             echo "Detected the single key alias in the keystore."
           fi
-          # Pass the resolved alias (whether supplied or detected) to later steps.
           echo "ANDROID_KEY_ALIAS=$ANDROID_KEY_ALIAS" >> "$GITHUB_ENV"
-          # Confirm the alias exists and points to a private-key entry.
           KEY_ENTRY="$(keytool -list -v -alias "$ANDROID_KEY_ALIAS" -keystore android/app/khedma-release.keystore -storepass "$ANDROID_KEYSTORE_PASSWORD")"
-          printf '%s\\n' "$KEY_ENTRY" | grep -q "PrivateKeyEntry" || {
+          printf '%s\n' "$KEY_ENTRY" | grep -q "PrivateKeyEntry" || {
             echo "The configured alias is not a private-key entry."
             exit 1
           }
@@ -148,10 +147,26 @@ jobs:
           test -x "$APKSIGNER" || (echo "Android SDK apksigner tool was not found" && exit 1)
           "$APKSIGNER" verify --verbose "$APK"
           "$APKSIGNER" verify --print-certs "$APK"
-      - name: Upload signed APK
+      - name: Upload signed APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: khedma-android-release
           path: android/app/build/outputs/apk/release/app-release.apk
           if-no-files-found: error
           retention-days: 30
+      - name: Publish public APK download
+        run: |
+          set -euo pipefail
+          mkdir -p public-download
+          cp android/app/build/outputs/apk/release/app-release.apk public-download/khedma.apk
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          mkdir -p downloads
+          cp public-download/khedma.apk downloads/khedma.apk
+          git add downloads/khedma.apk
+          if git diff --cached --quiet; then
+            echo "Public APK is already current."
+          else
+            git commit -m "Publish latest signed Khedma Android APK"
+            git push origin HEAD:main
+          fi
