@@ -57,11 +57,11 @@ jobs:
           from pathlib import Path
           p=Path('android/app/src/main/AndroidManifest.xml')
           s=p.read_text()
-          marker='<activity android:name=".MainActivity"'
-          i=s.find(marker)
-          if i<0:
-              raise SystemExit('MainActivity declaration not found; refusing unsafe manifest edit')
-          end=s.find('>', i)
+          import re
+          matches=list(re.finditer(r'<activity\\b[^>]*>', s))
+          if len(matches) != 1:
+              raise SystemExit(f'Expected exactly one activity in generated manifest; found {len(matches)}')
+          end=matches[0].end()-1
           block='''\n            <intent-filter>\n                <action android:name="android.intent.action.VIEW" />\n                <category android:name="android.intent.category.DEFAULT" />\n                <category android:name="android.intent.category.BROWSABLE" />\n                <data android:scheme="com.khedma.app" android:host="login-callback" />\n            </intent-filter>'''
           if 'android:scheme="com.khedma.app"' not in s:
               s=s[:end+1]+block+s[end+1:]
