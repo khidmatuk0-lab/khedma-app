@@ -192,6 +192,7 @@ button:hover{transform:translateY(-1px);box-shadow:0 8px 18px #087f8c30}
 .ride-order-meta strong{font-size:13px;color:#087d78}
 .ride-map-link{display:inline-block;margin-top:11px;color:#087f8c;font-size:12px;font-weight:700;text-decoration:none}
 .notification-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:12px 0}.notification-bar button{width:auto;min-height:40px;padding:8px 12px}.notification-count{display:inline-grid;place-items:center;min-width:20px;height:20px;padding:0 5px;border-radius:20px;background:#f4b942;color:#173247;font-weight:800}.notification-panel{padding:13px;margin:8px 0 14px;border:1px solid #dcebe8;border-radius:15px;background:#f8fcfb}.notification-entry{padding:10px 2px;border-bottom:1px solid #e5efed}.notification-entry:last-child{border-bottom:0}.notification-entry small{display:block;color:#718596;margin-top:3px}
+.chat-messages{max-height:360px;overflow:auto;display:flex;flex-direction:column;gap:9px;padding:10px;background:#f4f8fb;border-radius:13px}.chat-message{max-width:90%;padding:10px 12px;border-radius:13px;background:#fff;border:1px solid #e3ebef;align-self:flex-start;overflow-wrap:anywhere}.chat-message.mine{align-self:flex-end;background:#e5f8f1}.chat-message small{display:block;color:#718596;font-size:10px;margin-top:5px}.chat-message button{width:auto;padding:5px 8px;margin-top:6px;font-size:11px}.chat-input{width:100%;min-height:65px;padding:10px;border:1px solid #dce5e8;border-radius:10px;font:inherit;margin:8px 0}
 .admin-toolbar{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:14px 0}.admin-toolbar button{min-height:48px}.admin-panel{margin:14px 0;padding:14px;border:1px solid #e2ecef;border-radius:16px;background:#fff}.admin-panel h3{margin:0 0 10px}.admin-record{padding:12px 0;border-bottom:1px solid #edf1f3}.admin-record:last-child{border-bottom:0}.admin-record small{color:#718596}@media(max-width:390px){.admin-toolbar{grid-template-columns:1fr}}
 .provider-dashboard-head{display:flex;align-items:center;gap:12px;margin:4px 0 16px}.provider-dashboard-head>span{width:50px;height:50px;display:grid;place-items:center;border-radius:17px;background:#e4f8f2;font-size:26px}.provider-dashboard-head h2{margin:0}.provider-dashboard-head p{margin:3px 0 0}.provider-stat{padding:15px;border:1px solid #e1eeeb;border-radius:17px;background:linear-gradient(145deg,#fff,#f2faf8)}.provider-stat b{display:block;font-size:23px;color:#087f8c}.provider-stat span{font-size:11px;color:#718596}.provider-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.provider-actions button{min-height:58px}.provider-listing-row{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}.provider-listing-row strong{color:#173d50}.provider-section-title{display:flex;align-items:center;justify-content:space-between;gap:8px}.provider-section-title button{width:auto;padding:7px 10px;font-size:11px}@media(max-width:390px){.provider-actions{grid-template-columns:1fr}}
 .ride-accept-button,.ride-complete-button{width:100%;margin-top:12px;padding:11px}
@@ -258,8 +259,9 @@ button:hover{transform:translateY(-1px);box-shadow:0 8px 18px #087f8c30}
 <div class="ride-fee-preview" id="rideFeePreview">أدخل السعر لعرض تقدير العمولة (غير محصلة).</div><button id="requestRideButton" type="button" onclick="requestRide()">تأكيد وإرسال طلب المشوار</button></div>
 <div class="ride-panel"><div class="ride-list-heading"><h3>طلباتي</h3><button type="button" class="secondary" onclick="loadMyRides()">تحديث الطلبات</button></div><div id="myRides" aria-live="polite"></div></div>
 <div id="driverRide" class="hidden"><div class="ride-panel"><div class="ride-list-heading"><h3>الطلبات المتاحة</h3><button class="secondary" onclick="loadRides()">تحديث</button></div><div id="availableRides" aria-live="polite"></div></div><div class="ride-panel"><h3>المشاوير التي قبلتها</h3><div id="acceptedRides" aria-live="polite"></div></div></div>
+<div id="rideChatPanel" class="ride-panel hidden" aria-live="polite"><div class="provider-section-title"><h3 id="rideChatTitle">محادثة المشوار</h3><button type="button" class="secondary" onclick="closeRideChat()">إغلاق</button></div><p class="muted">تنبيه: المحادثة مرتبطة بالمشوار، ويمكن لفريق إدارة خِدمة مراجعة الرسائل عند البلاغات أو لأغراض السلامة ومكافحة إساءة الاستخدام.</p><div id="rideChatMessages" class="chat-messages"></div><div id="rideChatComposer"><textarea id="rideChatInput" maxlength="2000" placeholder="اكتب رسالتك..." class="chat-input"></textarea><button type="button" onclick="sendRideChatMessage()">إرسال الرسالة</button></div></div>
 </section>
-<section id="providerDashboard" class="hidden"><div class="provider-dashboard-head"><span>🧰</span><div><h2>لوحة مقدم الخدمة</h2><p class="muted">إدارة إعلاناتك ومتابعة نشاطك من مكان واحد.</p></div></div><div id="providerStats" class="grid"><div class="provider-stat">جارٍ تحميل ملخص نشاطك...</div></div><div class="ride-panel"><div class="provider-actions"><button type="button" onclick="showCreate()">＋ إضافة إعلان أو خدمة</button><button type="button" class="secondary" onclick="showHome()">استعراض الإعلانات</button><button type="button" class="secondary" onclick="showRides()">إدارة الطلبات والمشاوير</button><button type="button" class="secondary" onclick="loadProviderDashboard()">↻ تحديث البيانات</button></div></div><div class="ride-panel"><div class="provider-section-title"><h3>إعلاناتي وخدماتي</h3><span class="muted">آخر 50 إعلانًا</span></div><div id="providerListings" aria-live="polite">جارٍ تحميل الإعلانات...</div></div><div class="ride-panel hidden" id="providerRideSummary"><h3>ملخص المشاوير</h3><div id="providerRides" aria-live="polite">جارٍ تحميل المشاوير...</div></div></section><section id="owner" class="hidden"><h2>لوحة المالك</h2><p class="muted">إدارة تشغيلية للمنصة. الأرقام لا تمثل إيرادات محصلة.</p><div id="ownerStats" class="grid"></div><div class="admin-toolbar"><button type="button" class="secondary" onclick="loadOwnerDashboard()">↻ تحديث لوحة الإدارة</button><button type="button" class="secondary" onclick="loadOwnerUsers()">👥 مراجعة المستخدمين</button><button type="button" class="secondary" onclick="loadOwnerRides()">🚗 مراجعة الطلبات</button><button type="button" class="secondary" onclick="loadOwnerListings('all')">🛍️ مراجعة الإعلانات</button></div><div class="admin-panel"><h3>إدارة المستخدمين</h3><div id="ownerUsers" aria-live="polite">جارٍ تحميل الحسابات...</div></div><div class="admin-panel"><h3>متابعة الطلبات والمشاوير</h3><div id="ownerRides" aria-live="polite">جارٍ تحميل الطلبات...</div></div><h3>إدارة الإعلانات</h3><div class="tabs"><button class="secondary" onclick="loadOwnerListings('all')">الكل</button><button class="secondary" onclick="loadOwnerListings('active')">نشطة</button><button class="secondary" onclick="loadOwnerListings('paused')">موقوفة</button></div><div id="ownerListings"></div><h3>الحسابات والعمولات</h3><div class="grid" id="commissionStats"><div class="item">جارٍ تحميل الحسابات...</div></div><div class="item"><b>محفظة الاستلام:</b> Vodafone Cash باسم مالك التطبيق<br><span class="muted">التحويل غير مفعل حتى اعتماد حساب Paymob Payout وربط بياناته السرية داخل الخادم.</span></div><h3>سجل العمولات</h3><div id="commissionLedger" class="item">جارٍ تحميل السجل...</div><h3>إعدادات العمولات</h3><p class="muted">10% للأقسام الخاضعة للعمولة، بحد أدنى 5 جنيهات. الوظائف 0%. لا يوجد تحصيل حقيقي حتى تفعيل بوابة الدفع.</p><div id="ownerRates"></div><button onclick="saveCommissionSettings()">حفظ نسب العمولات</button><h3>ملاحظات تشغيلية</h3><div class="item">لا توجد بوابة دفع أو تحصيل إلكتروني متصلة بعد.</div><div class="item">لا تستخدم التطبيق لتشغيل رحلات فعلية قبل استكمال التراخيص والتحقق من السائقين وإجراءات السلامة.</div></section></section></main>
+<section id="providerDashboard" class="hidden"><div class="provider-dashboard-head"><span>🧰</span><div><h2>لوحة مقدم الخدمة</h2><p class="muted">إدارة إعلاناتك ومتابعة نشاطك من مكان واحد.</p></div></div><div id="providerStats" class="grid"><div class="provider-stat">جارٍ تحميل ملخص نشاطك...</div></div><div class="ride-panel"><div class="provider-actions"><button type="button" onclick="showCreate()">＋ إضافة إعلان أو خدمة</button><button type="button" class="secondary" onclick="showHome()">استعراض الإعلانات</button><button type="button" class="secondary" onclick="showRides()">إدارة الطلبات والمشاوير</button><button type="button" class="secondary" onclick="loadProviderDashboard()">↻ تحديث البيانات</button></div></div><div class="ride-panel"><div class="provider-section-title"><h3>إعلاناتي وخدماتي</h3><span class="muted">آخر 50 إعلانًا</span></div><div id="providerListings" aria-live="polite">جارٍ تحميل الإعلانات...</div></div><div class="ride-panel hidden" id="providerRideSummary"><h3>ملخص المشاوير</h3><div id="providerRides" aria-live="polite">جارٍ تحميل المشاوير...</div></div></section><section id="owner" class="hidden"><h2>لوحة المالك</h2><p class="muted">إدارة تشغيلية للمنصة. الأرقام لا تمثل إيرادات محصلة.</p><div id="ownerStats" class="grid"></div><div class="admin-toolbar"><button type="button" class="secondary" onclick="loadOwnerDashboard()">↻ تحديث لوحة الإدارة</button><button type="button" class="secondary" onclick="loadOwnerUsers()">👥 مراجعة المستخدمين</button><button type="button" class="secondary" onclick="loadOwnerRides()">🚗 مراجعة الطلبات</button><button type="button" class="secondary" onclick="loadOwnerListings('all')">🛍️ مراجعة الإعلانات</button></div><div class="admin-panel"><h3>إدارة المستخدمين</h3><div id="ownerUsers" aria-live="polite">جارٍ تحميل الحسابات...</div></div><div class="admin-panel"><h3>متابعة الطلبات والمشاوير</h3><div id="ownerRides" aria-live="polite">جارٍ تحميل الطلبات...</div></div><div class="admin-panel"><div class="provider-section-title"><h3>مراقبة محادثات خِدمة</h3><button type="button" class="secondary" onclick="loadChatModeration()">↻ تحديث المراقبة</button></div><p class="muted">يستطيع المالك مراجعة الرسائل والبلاغات وإخفاء الرسائل المخالفة دون حذف سجلها.</p><div id="chatModerationReports">جارٍ تحميل البلاغات...</div><h4>أحدث الرسائل</h4><div id="chatModerationMessages">جارٍ تحميل الرسائل...</div></div><h3>إدارة الإعلانات</h3><div class="tabs"><button class="secondary" onclick="loadOwnerListings('all')">الكل</button><button class="secondary" onclick="loadOwnerListings('active')">نشطة</button><button class="secondary" onclick="loadOwnerListings('paused')">موقوفة</button></div><div id="ownerListings"></div><h3>الحسابات والعمولات</h3><div class="grid" id="commissionStats"><div class="item">جارٍ تحميل الحسابات...</div></div><div class="item"><b>محفظة الاستلام:</b> Vodafone Cash باسم مالك التطبيق<br><span class="muted">التحويل غير مفعل حتى اعتماد حساب Paymob Payout وربط بياناته السرية داخل الخادم.</span></div><h3>سجل العمولات</h3><div id="commissionLedger" class="item">جارٍ تحميل السجل...</div><h3>إعدادات العمولات</h3><p class="muted">10% للأقسام الخاضعة للعمولة، بحد أدنى 5 جنيهات. الوظائف 0%. لا يوجد تحصيل حقيقي حتى تفعيل بوابة الدفع.</p><div id="ownerRates"></div><button onclick="saveCommissionSettings()">حفظ نسب العمولات</button><h3>ملاحظات تشغيلية</h3><div class="item">لا توجد بوابة دفع أو تحصيل إلكتروني متصلة بعد.</div><div class="item">لا تستخدم التطبيق لتشغيل رحلات فعلية قبل استكمال التراخيص والتحقق من السائقين وإجراءات السلامة.</div></section></section></main>
 <script>
 const SUPABASE_URL="https://ycawavrgrettwxsdgssi.supabase.co";
 const SUPABASE_KEY="sb_publishable_NN7fLCH7DSQT6nh4jU72rg_VveeGeHs";
@@ -382,6 +384,7 @@ async function loadOwnerDashboard(){
  await loadOwnerListings('all');
  await loadOwnerUsers();
  await loadOwnerRides();
+ await loadChatModeration();
 }
 async function loadCommissionDashboard(){
  const stats=document.getElementById("commissionStats"),ledger=document.getElementById("commissionLedger");
@@ -587,6 +590,94 @@ function attachRideReviewButtons(cards,rows,role){
   button.addEventListener('click',()=>submitRideReview(ride.id,revieweeId));card.appendChild(button);
  });
 }
+
+let activeRideConversation=null,rideChatTimer=null,rideChatLoading=false;
+async function openRideChat(rideId,customerId,providerId){
+ if(!currentUser||!customerId||!providerId){msg("بيانات أطراف المشوار غير مكتملة.");return}
+ const panel=document.getElementById("rideChatPanel");panel.classList.remove("hidden");
+ document.getElementById("rideChatTitle").textContent="محادثة المشوار";
+ document.getElementById("rideChatMessages").textContent="جارٍ فتح المحادثة...";
+ let {data:conversation,error}=await db.from("ride_conversations").select("*").eq("ride_id",rideId).maybeSingle();
+ if(error){document.getElementById("rideChatMessages").textContent="تعذر فتح المحادثة: "+error.message;return}
+ if(!conversation){
+  const created=await db.from("ride_conversations").insert({ride_id:rideId,customer_id:customerId,provider_id:providerId}).select("*").single();
+  if(created.error){
+   const retry=await db.from("ride_conversations").select("*").eq("ride_id",rideId).maybeSingle();
+   if(retry.error||!retry.data){document.getElementById("rideChatMessages").textContent="تعذر إنشاء المحادثة. تأكد أن المشوار مقبول وأنك أحد طرفيه.";return}
+   conversation=retry.data;
+  }else conversation=created.data;
+ }
+ if(conversation.customer_id!==currentUser.id&&conversation.provider_id!==currentUser.id&&currentProfile?.role!=="admin"){msg("غير مصرح بفتح هذه المحادثة.");return}
+ activeRideConversation=conversation;
+ document.getElementById("rideChatComposer").classList.toggle("hidden",conversation.status!=="open");
+ await loadRideChatMessages();
+ if(rideChatTimer)clearInterval(rideChatTimer);
+ rideChatTimer=setInterval(loadRideChatMessages,5000);
+ panel.scrollIntoView({behavior:"smooth",block:"start"});
+}
+function closeRideChat(){if(rideChatTimer)clearInterval(rideChatTimer);rideChatTimer=null;activeRideConversation=null;document.getElementById("rideChatPanel")?.classList.add("hidden")}
+async function loadRideChatMessages(){
+ if(!activeRideConversation||rideChatLoading)return;rideChatLoading=true;
+ const box=document.getElementById("rideChatMessages");
+ const {data,error}=await db.from("ride_chat_messages").select("id,sender_id,body,moderation_status,created_at").eq("conversation_id",activeRideConversation.id).order("created_at",{ascending:true}).limit(200);
+ rideChatLoading=false;
+ if(error){box.textContent="تعذر تحميل الرسائل: "+error.message;return}
+ const oldHeight=box.scrollHeight,wasNearBottom=box.scrollTop+box.clientHeight>=oldHeight-45;
+ box.innerHTML=(data||[]).map(m=>'<div class="chat-message '+(m.sender_id===currentUser.id?'mine':'')+'"><div>'+safe(m.body)+'</div><small>'+safe(rideDate(m.created_at))+'</small><button type="button" class="secondary" onclick="reportRideChatMessage(\''+safe(m.id)+'\')">إبلاغ عن الرسالة</button></div>').join("")||'<p class="muted">لا توجد رسائل بعد. ابدأ المحادثة باحترام.</p>';
+ if(wasNearBottom)box.scrollTop=box.scrollHeight;
+}
+async function sendRideChatMessage(){
+ if(!activeRideConversation||activeRideConversation.status!=="open")return;
+ const input=document.getElementById("rideChatInput"),body=input.value.trim();
+ if(!body){msg("اكتب رسالة أولًا.");return}if(body.length>2000){msg("الرسالة أطول من المسموح.");return}
+ const button=document.querySelector("#rideChatComposer button");button.disabled=true;
+ const {error}=await db.from("ride_chat_messages").insert({conversation_id:activeRideConversation.id,sender_id:currentUser.id,body});
+ button.disabled=false;
+ if(error){msg("تعذر إرسال الرسالة: "+error.message);return}
+ input.value="";await loadRideChatMessages();
+}
+async function reportRideChatMessage(messageId){
+ const details=(prompt("اكتب سبب الإبلاغ باختصار: إساءة أو مضايقة أو spam أو احتيال أو سبب آخر")||"").trim();
+ if(!details)return;
+ const reason=/إساءة|سب|تهديد/.test(details)?"abuse":/مضايقة/.test(details)?"harassment":/احتيال|نصب/.test(details)?"scam":/spam|إعلان/.test(details)?"spam":"other";
+ const {error}=await db.from("ride_chat_reports").insert({message_id:messageId,reporter_id:currentUser.id,reason,details});
+ if(error){msg(error.code==="23505"?"سبق لك الإبلاغ عن هذه الرسالة.":"تعذر إرسال البلاغ: "+error.message);return}
+ msg("تم إرسال البلاغ إلى إدارة خِدمة للمراجعة.");
+}
+function attachRideChatButtons(box,rows,role){
+ box.querySelectorAll(role==="customer"?"[data-review-ride]":"[data-driver-review-ride]").forEach(card=>{
+  const id=card.getAttribute(role==="customer"?"data-review-ride":"data-driver-review-ride");
+  const ride=rows.find(x=>String(x.id)===id);if(!ride||!ride.driver_id)return;
+  if(!["accepted","completed"].includes(ride.status))return;
+  const button=document.createElement("button");button.type="button";button.className="secondary";button.textContent="💬 محادثة مع "+(role==="customer"?"السائق":"العميل");
+  button.addEventListener("click",()=>openRideChat(ride.id,ride.customer_id,ride.driver_id));card.appendChild(button);
+ });
+}
+async function loadChatModeration(){
+ if(currentProfile?.role!=="admin")return;
+ const reportsBox=document.getElementById("chatModerationReports"),messagesBox=document.getElementById("chatModerationMessages");
+ if(!reportsBox||!messagesBox)return;
+ reportsBox.textContent="جارٍ تحميل البلاغات...";
+ const {data:reports,error}=await db.from("ride_chat_reports").select("id,message_id,reporter_id,reason,details,status,created_at").order("created_at",{ascending:false}).limit(50);
+ if(error){reportsBox.textContent="تعذر تحميل البلاغات: "+error.message;return}
+ const reportIds=(reports||[]).map(r=>r.message_id);
+ let messages=[];
+ if(reportIds.length){const result=await db.from("ride_chat_messages").select("id,body,sender_id,moderation_status,created_at").in("id",reportIds);messages=result.data||[]}
+ reportsBox.innerHTML=(reports||[]).map(r=>{const m=messages.find(x=>x.id===r.message_id);return '<div class="admin-record"><b>بلاغ: '+safe(r.reason)+' · '+safe(r.status)+'</b><p>'+safe(r.details)+'</p><p>الرسالة: '+safe(m?.body||"الرسالة غير متاحة")+'</p><small>'+safe(rideDate(r.created_at))+' · رقم البلاغ '+safe(r.id)+'</small>'+(r.status==="open"?'<button type="button" class="secondary" onclick="reviewChatReport(\''+safe(r.id)+'\')">تسجيل تمت المراجعة</button>':'')+'</div>'}).join("")||"لا توجد بلاغات حتى الآن.";
+ const {data:recent,error:recentError}=await db.from("ride_chat_messages").select("id,conversation_id,sender_id,body,moderation_status,created_at").order("created_at",{ascending:false}).limit(50);
+ if(recentError){messagesBox.textContent="تعذر تحميل الرسائل.";return}
+ messagesBox.innerHTML=(recent||[]).map(m=>'<div class="admin-record"><b>'+safe(m.moderation_status==="hidden"?"رسالة مخفية":"رسالة ظاهرة")+'</b><p>'+safe(m.body)+'</p><small>'+safe(rideDate(m.created_at))+' · مرسل: '+safe(m.sender_id)+' · محادثة: '+safe(m.conversation_id)+'</small>'+(m.moderation_status!=="hidden"?'<button type="button" class="secondary" onclick="hideChatMessage(\''+safe(m.id)+'\')">إخفاء الرسالة</button>':'')+'</div>').join("")||"لا توجد رسائل حتى الآن.";
+}
+async function reviewChatReport(id){
+ const {error}=await db.from("ride_chat_reports").update({status:"reviewed",reviewed_by:currentUser.id,reviewed_at:new Date().toISOString()}).eq("id",id);
+ if(error){msg("تعذر تحديث البلاغ: "+error.message);return}msg("تم تسجيل مراجعة البلاغ.");loadChatModeration();
+}
+async function hideChatMessage(id){
+ if(!confirm("إخفاء هذه الرسالة عن أطراف المحادثة؟ سيظل سجلها محفوظًا للمراجعة الإدارية."))return;
+ const {error}=await db.from("ride_chat_messages").update({moderation_status:"hidden",moderated_by:currentUser.id,moderated_at:new Date().toISOString()}).eq("id",id);
+ if(error){msg("تعذر إخفاء الرسالة: "+error.message);return}msg("تم إخفاء الرسالة مع الاحتفاظ بسجلها.");loadChatModeration();
+}
+
 async function loadMyRides(){
  const box=document.getElementById("myRides");if(!box)return;
  box.innerHTML='<div class="ride-loading">جارٍ تحميل طلباتك...</div>';
@@ -598,6 +689,7 @@ async function loadMyRides(){
   return '<article data-review-ride="'+safe(r.id)+'" class="ride-order-card"><div class="ride-order-top"><span class="ride-status '+rideStatusClass(r.status)+'">'+rideStatusLabel(r.status)+'</span><small>'+safe(rideDate(r.created_at))+'</small></div><div class="ride-route"><div><i class="route-dot start"></i><span><small>نقطة الانطلاق</small><b>'+safe(r.pickup_address)+'</b></span></div><div><i class="route-dot end"></i><span><small>الوجهة</small><b>'+safe(r.destination_address)+'</b></span></div></div><div class="ride-order-meta"><span>📍 '+safe(r.governorate)+'</span><strong>'+(r.price==null?"السعر غير محدد":safe(Number(r.price).toLocaleString("ar-EG"))+" جنيه")+'</strong></div>'+coords+'</article>';
  }).join("")||'<div class="ride-empty">لا توجد طلبات حتى الآن. ابدأ بطلب مشوارك الأول.</div>';
  attachRideReviewButtons(box,rows,'customer');
+ attachRideChatButtons(box,rows,'customer');
 }
 async function startRidePayment(rideId){msg("جارٍ تجهيز صفحة الدفع...");const {data,error}=await db.functions.invoke("paymob-checkout",{body:{ride_id:rideId}});if(error){msg("تعذر الاتصال بخدمة الدفع. تأكد من إعداد حساب Paymob.");return}if(data?.error){msg(data.error);return}if(data?.checkout_url){window.location.href=data.checkout_url;return}msg("لم يصل رابط الدفع من بوابة Paymob")}
 async function loadRides(){
@@ -616,6 +708,7 @@ async function loadRides(){
   return '<article data-driver-review-ride="'+safe(r.id)+'" class="ride-order-card"><div class="ride-order-top"><span class="ride-status '+rideStatusClass(r.status)+'">'+rideStatusLabel(r.status)+'</span><small>'+safe(rideDate(r.created_at))+'</small></div><div class="ride-route"><div><i class="route-dot start"></i><span><small>الانطلاق</small><b>'+safe(r.pickup_address)+'</b></span></div><div><i class="route-dot end"></i><span><small>الوجهة</small><b>'+safe(r.destination_address)+'</b></span></div></div><div class="ride-order-meta"><span>📍 '+safe(r.governorate)+'</span><strong>'+(r.price==null?"السعر غير محدد":safe(Number(r.price).toLocaleString("ar-EG"))+" جنيه")+'</strong></div>'+(r.status==="accepted"?'<button class="ride-complete-button" data-complete="'+safe(r.id)+'">تأكيد انتهاء المشوار</button>':'')+(p?.status==="paid"?'<p class="ride-paid-note">تم سداد العمولة: '+safe(Number(p.amount).toFixed(2))+' جنيه</p>':(r.price>0?'<button class="secondary" data-pay="'+safe(r.id)+'">سداد عمولة المنصة</button><p class="muted">العمولة على مقدم الخدمة، ولا تُحصّل من العميل.</p>':''))+'</article>';
  }).join("")||'<div class="ride-empty">لم تقبل أي مشاوير بعد.</div>';
  attachRideReviewButtons(accepted,a||[],'driver');
+ attachRideChatButtons(accepted,a||[],'driver');
  accepted.querySelectorAll("[data-complete]").forEach(b=>b.onclick=()=>completeRide(b.dataset.complete));
  accepted.querySelectorAll("[data-pay]").forEach(b=>b.onclick=()=>startRidePayment(b.dataset.pay));
 }
@@ -663,7 +756,7 @@ function startNotificationMonitoring(){
  };
  await check();notificationTimer=setInterval(check,20000);
 }
-async function logout(){if(notificationTimer)clearInterval(notificationTimer);await db.auth.signOut();location.reload()}
+async function logout(){if(notificationTimer)clearInterval(notificationTimer);closeRideChat();await db.auth.signOut();location.reload()}
 msg("جارٍ استعادة تسجيل الدخول...");db.auth.getSession().then(async({data,error})=>{if(data?.session){currentUser=data.session.user;await enterApp()}else{msg(error?"سجّل الدخول مرة واحدة لحفظ الجلسة على هذا الجهاز":"أهلاً بك في خدمة — سجّل الدخول مرة واحدة، وسنحتفظ بجلسة حسابك على هذا الجهاز.");}});
 restoreEmail();
 init();
