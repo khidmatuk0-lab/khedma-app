@@ -262,6 +262,8 @@ button:hover{transform:translateY(-1px);box-shadow:0 8px 18px #087f8c30}
 </section>
 <section id="rides" class="hidden">
 <div class="ride-page-heading"><span>🚘</span><div><h2>المشاوير والطلبات</h2><p class="muted">اطلب مشوارك أو تابع الطلبات خطوة بخطوة.</p></div></div>
+<div class="ride-panel"><button id="safetyReportButton" type="button" class="danger" onclick="openSafetyReport()">⚠️ الإبلاغ عن مشكلة تتعلق بالسلامة</button></div>
+
 <div id="customerRide" class="ride-panel"><h3>اطلب مشوارًا جديدًا</h3>
 <div class="ride-form-grid"><div class="form-field"><label for="rideGov">المحافظة</label><select id="rideGov"></select></div><div class="form-field"><label for="ridePrice">السعر المقترح بالجنيه</label><input id="ridePrice" type="number" min="0" step="0.01" inputmode="decimal" placeholder="اختياري" oninput="previewRideFee()"></div></div>
 <p class="muted">حدد نقطة الانطلاق والوصول على الخريطة، أو اكتب العنوان يدويًا.</p>
@@ -271,10 +273,40 @@ button:hover{transform:translateY(-1px);box-shadow:0 8px 18px #087f8c30}
 <details class="ride-coordinates"><summary>تفاصيل تحديد الموقع</summary><div class="grid"><div><label>إحداثيات الانطلاق</label><input id="pickupCoords" readonly placeholder="لم يتم التحديد"></div><div><label>إحداثيات الوصول</label><input id="destinationCoords" readonly placeholder="لم يتم التحديد"></div></div></details>
 <div class="ride-fee-preview" id="rideFeePreview">أدخل السعر لعرض تقدير العمولة (غير محصلة).</div><button id="requestRideButton" type="button" onclick="requestRide()">تأكيد وإرسال طلب المشوار</button></div>
 <div class="ride-panel"><div class="ride-list-heading"><h3>طلباتي</h3><button type="button" class="secondary" onclick="loadMyRides()">تحديث الطلبات</button></div><div id="myRides" aria-live="polite"></div></div>
+
+<div class="ride-panel" id="driverVerificationPanel">
+ <div class="provider-section-title"><h3>توثيق السائق</h3><span id="driverVerificationBadge" class="admin-badge">غير موثق</span></div>
+ <p class="muted">لا يمكن استقبال أي مشوار قبل مراجعة واعتماد مستنداتك. بياناتك ومستنداتك خاصة ولا تظهر للعامة.</p>
+ <div id="driverVerificationStatus" class="item">جارٍ تحميل حالة التوثيق...</div>
+ <div id="driverVerificationForm">
+  <h4>بيانات المركبة</h4>
+  <label for="driverVehicleType">نوع المركبة</label><input id="driverVehicleType" maxlength="80" placeholder="مثال: توكتوك / سيارة / دراجة">
+  <label for="driverVehiclePlate">رقم اللوحة</label><input id="driverVehiclePlate" maxlength="30" placeholder="رقم لوحة المركبة">
+  <h4>المستندات المطلوبة</h4>
+  <label for="driverIdentityDoc">البطاقة الشخصية (صورة أو PDF)</label><input id="driverIdentityDoc" type="file" accept="image/jpeg,image/png,image/webp,application/pdf">
+  <label for="driverLicenseDoc">رخصة القيادة (صورة أو PDF)</label><input id="driverLicenseDoc" type="file" accept="image/jpeg,image/png,image/webp,application/pdf">
+  <label for="vehicleLicenseDoc">رخصة المركبة (صورة أو PDF)</label><input id="vehicleLicenseDoc" type="file" accept="image/jpeg,image/png,image/webp,application/pdf">
+  <label for="driverVerificationNote">ملاحظات (اختياري)</label><textarea id="driverVerificationNote" maxlength="1000" placeholder="أي توضيح يساعد في مراجعة الطلب"></textarea>
+  <p class="muted">الحد الأقصى لكل ملف 10 ميجابايت. الصيغ المسموحة: JPG وPNG وWebP وPDF.</p>
+  <button type="button" id="submitDriverVerificationButton" onclick="submitDriverVerification()">إرسال المستندات للمراجعة</button>
+ </div>
+</div>
+<div class="ride-panel" id="driverSafetyActions"><h3>السلامة والإبلاغ</h3><p class="muted">إذا واجهت مشكلة أثناء التعامل على المنصة، أرسل بلاغًا لفريق خِدمة.</p><button type="button" class="danger" onclick="openSafetyReport()">⚠️ الإبلاغ عن مشكلة</button><div id="mySafetyReports" class="muted"></div></div>
+
 <div id="driverRide" class="hidden"><div class="ride-panel"><div class="ride-list-heading"><h3>الطلبات المتاحة</h3><button class="secondary" onclick="loadRides()">تحديث</button></div><div id="availableRides" aria-live="polite"></div></div><div class="ride-panel"><h3>المشاوير التي قبلتها</h3><div id="acceptedRides" aria-live="polite"></div></div></div>
 <div id="rideChatPanel" class="ride-panel hidden" aria-live="polite"><div class="provider-section-title"><h3 id="rideChatTitle">محادثة المشوار</h3><button type="button" class="secondary" onclick="closeRideChat()">إغلاق</button></div><p class="muted">تنبيه: المحادثة مرتبطة بالمشوار، ويمكن لفريق إدارة خِدمة مراجعة الرسائل عند البلاغات أو لأغراض السلامة ومكافحة إساءة الاستخدام.</p><div id="rideChatMessages" class="chat-messages"></div><div id="rideChatComposer"><textarea id="rideChatInput" maxlength="2000" placeholder="اكتب رسالتك..." class="chat-input"></textarea><button type="button" onclick="sendRideChatMessage()">إرسال الرسالة</button></div></div>
 </section>
-<section id="providerDashboard" class="hidden"><div class="provider-dashboard-head"><span>🧰</span><div><h2>لوحة مقدم الخدمة</h2><p class="muted">إدارة إعلاناتك ومتابعة نشاطك من مكان واحد.</p></div></div><div id="providerStats" class="grid"><div class="provider-stat">جارٍ تحميل ملخص نشاطك...</div></div><div class="ride-panel"><div class="provider-actions"><button type="button" onclick="showCreate()">＋ إضافة إعلان أو خدمة</button><button type="button" class="secondary" onclick="showHome()">استعراض الإعلانات</button><button type="button" class="secondary" onclick="showRides()">إدارة الطلبات والمشاوير</button><button type="button" class="secondary" onclick="loadProviderDashboard()">↻ تحديث البيانات</button></div></div><div class="ride-panel"><div class="provider-section-title"><h3>إعلاناتي وخدماتي</h3><span class="muted">آخر 50 إعلانًا</span></div><div id="providerListings" aria-live="polite">جارٍ تحميل الإعلانات...</div></div><div class="ride-panel"><div class="provider-section-title"><h3>رسائل العملاء على إعلاناتي</h3><button type="button" class="secondary" onclick="loadMyListingChats()">تحديث الرسائل</button></div><div id="myListingChats">لا توجد محادثات محملة.</div></div><div class="ride-panel hidden" id="providerRideSummary"><h3>ملخص المشاوير</h3><div id="providerRides" aria-live="polite">جارٍ تحميل المشاوير...</div></div></section><section id="owner" class="hidden"><h2>لوحة المالك</h2><p class="muted">إدارة تشغيلية للمنصة. الأرقام لا تمثل إيرادات محصلة.</p><div id="ownerStats" class="grid"></div><div class="admin-toolbar"><button type="button" class="secondary" onclick="loadOwnerDashboard()">↻ تحديث لوحة الإدارة</button><button type="button" class="secondary" onclick="loadOwnerUsers()">👥 مراجعة المستخدمين</button><button type="button" class="secondary" onclick="loadOwnerRides()">🚗 مراجعة الطلبات</button><button type="button" class="secondary" onclick="loadOwnerListings('all')">🛍️ مراجعة الإعلانات</button></div><div class="admin-panel" id="ownerAdminManagers"><div class="provider-section-title"><h3>إدارة المشرفين</h3><span class="admin-badge">للمالك فقط</span></div><p class="muted">أضف مشرفًا باستخدام البريد الإلكتروني لحساب مسجل بالفعل. المشرف يستطيع متابعة الطلبات والإعلانات والبلاغات، ولا يستطيع تغيير العمولة أو إدارة مشرفين آخرين أو الاطلاع على الحسابات المالية.</p><div class="owner-admin-actions"><input id="newAdminEmail" type="email" autocomplete="email" placeholder="البريد الإلكتروني لحساب مسجل"><button type="button" onclick="addPlatformModerator()">＋ إضافة مشرف</button></div><div id="ownerAdminList">جارٍ تحميل قائمة المشرفين...</div></div><div class="admin-panel"><h3>إدارة المستخدمين</h3><input id="ownerUserSearch" type="search" placeholder="ابحث بالاسم أو رقم الهاتف" oninput="filterOwnerUsers()" style="width:100%;padding:11px;border:1px solid #dce5e8;border-radius:10px;margin:8px 0"><div id="ownerUsers" aria-live="polite">جارٍ تحميل الحسابات...</div></div><div class="admin-panel"><h3>متابعة الطلبات والمشاوير</h3><div id="ownerRides" aria-live="polite">جارٍ تحميل الطلبات...</div></div><div class="admin-panel"><div class="provider-section-title"><h3>مراقبة محادثات خِدمة</h3><button type="button" class="secondary" onclick="loadChatModeration()">↻ تحديث المراقبة</button></div><p class="muted">يستطيع المالك مراجعة الرسائل والبلاغات وإخفاء الرسائل المخالفة دون حذف سجلها.</p><div id="chatModerationReports">جارٍ تحميل البلاغات...</div><h4>أحدث الرسائل</h4><div id="chatModerationMessages">جارٍ تحميل الرسائل...</div></div><div class="admin-panel"><div class="provider-section-title"><h3>مراقبة محادثات الإعلانات والبيع والشراء</h3><button type="button" class="secondary" onclick="loadListingChatModeration()">↻ تحديث</button></div><p class="muted">مراجعة البلاغات والرسائل، وإخفاء المحتوى المخالف مع الاحتفاظ بالسجل.</p><div id="listingChatReports">جارٍ تحميل البلاغات...</div><h4>أحدث الرسائل</h4><div id="listingChatRecent">جارٍ تحميل الرسائل...</div></div><h3>إدارة الإعلانات</h3><div class="tabs"><button class="secondary" onclick="loadOwnerListings('all')">الكل</button><button class="secondary" onclick="loadOwnerListings('active')">نشطة</button><button class="secondary" onclick="loadOwnerListings('paused')">موقوفة</button></div><div id="ownerListings"></div><div id="ownerFinancialSection"><h3>الحسابات والعمولات</h3><div class="grid" id="commissionStats"><div class="item">جارٍ تحميل الحسابات...</div></div><div class="item"><b>محفظة الاستلام:</b> Vodafone Cash باسم مالك التطبيق<br><span class="muted">التحويل غير مفعل حتى اعتماد حساب Paymob Payout وربط بياناته السرية داخل الخادم.</span></div><h3>سجل العمولات</h3><div id="commissionLedger" class="item">جارٍ تحميل السجل...</div><h3>إعدادات العمولات</h3><p class="muted">10% للأقسام الخاضعة للعمولة، بحد أدنى 5 جنيهات. الوظائف 0%. لا يوجد تحصيل حقيقي حتى تفعيل بوابة الدفع.</p><div id="ownerRates"></div><button onclick="saveCommissionSettings()">حفظ نسب العمولات</button><h3>ملاحظات تشغيلية</h3><div class="item">لا توجد بوابة دفع أو تحصيل إلكتروني متصلة بعد.</div><div class="item">لا تستخدم التطبيق لتشغيل رحلات فعلية قبل استكمال التراخيص والتحقق من السائقين وإجراءات السلامة.</div></div></section><div id="listingChatPanel" class="listing-chat-panel hidden"><div class="provider-section-title"><h3 id="listingChatTitle">محادثة الإعلان</h3><button type="button" class="secondary" onclick="closeListingChat()">إغلاق</button></div><p class="muted">المحادثة مرتبطة بالإعلان، وقد تُراجع من إدارة خِدمة عند البلاغات أو لأسباب السلامة. لا ترسل كلمات مرور أو بيانات بنكية أو معلومات حساسة.</p><div id="listingChatMessages" class="listing-chat-messages"></div><div id="listingChatComposer"><textarea id="listingChatInput" maxlength="2000" class="listing-chat-input" placeholder="اكتب رسالتك..."></textarea><button type="button" onclick="sendListingChatMessage()">إرسال</button></div></div></section></main>
+<section id="providerDashboard" class="hidden"><div class="provider-dashboard-head"><span>🧰</span><div><h2>لوحة مقدم الخدمة</h2><p class="muted">إدارة إعلاناتك ومتابعة نشاطك من مكان واحد.</p></div></div><div id="providerStats" class="grid"><div class="provider-stat">جارٍ تحميل ملخص نشاطك...</div></div><div class="ride-panel"><div class="provider-actions"><button type="button" onclick="showCreate()">＋ إضافة إعلان أو خدمة</button><button type="button" class="secondary" onclick="showHome()">استعراض الإعلانات</button><button type="button" class="secondary" onclick="showRides()">إدارة الطلبات والمشاوير</button><button type="button" class="secondary" onclick="loadProviderDashboard()">↻ تحديث البيانات</button></div></div><div class="ride-panel"><div class="provider-section-title"><h3>إعلاناتي وخدماتي</h3><span class="muted">آخر 50 إعلانًا</span></div><div id="providerListings" aria-live="polite">جارٍ تحميل الإعلانات...</div></div><div class="ride-panel"><div class="provider-section-title"><h3>رسائل العملاء على إعلاناتي</h3><button type="button" class="secondary" onclick="loadMyListingChats()">تحديث الرسائل</button></div><div id="myListingChats">لا توجد محادثات محملة.</div></div><div class="ride-panel hidden" id="providerRideSummary"><h3>ملخص المشاوير</h3><div id="providerRides" aria-live="polite">جارٍ تحميل المشاوير...</div></div></section><section id="owner" class="hidden"><h2>لوحة المالك</h2><p class="muted">إدارة تشغيلية للمنصة. الأرقام لا تمثل إيرادات محصلة.</p><div id="ownerStats" class="grid"></div><div class="admin-toolbar"><button type="button" class="secondary" onclick="loadOwnerDashboard()">↻ تحديث لوحة الإدارة</button><button type="button" class="secondary" onclick="loadOwnerUsers()">👥 مراجعة المستخدمين</button><button type="button" class="secondary" onclick="loadOwnerRides()">🚗 مراجعة الطلبات</button><button type="button" class="secondary" onclick="loadOwnerListings('all')">🛍️ مراجعة الإعلانات</button></div>
+<div class="admin-panel" id="ownerDriverVerificationPanel">
+ <div class="provider-section-title"><h3>طلبات توثيق السائقين</h3><button type="button" class="secondary" onclick="loadOwnerDriverVerifications()">↻ تحديث</button></div>
+ <p class="muted">راجع المستندات قبل اعتماد أي سائق. فتح المستندات متاح للمالك فقط عبر روابط مؤقتة.</p>
+ <div id="ownerDriverVerifications">جارٍ تحميل طلبات التوثيق...</div>
+</div>
+<div class="admin-panel" id="ownerSafetyReportsPanel">
+ <div class="provider-section-title"><h3>بلاغات السلامة</h3><button type="button" class="secondary" onclick="loadOwnerSafetyReports()">↻ تحديث</button></div>
+ <div id="ownerSafetyReports">جارٍ تحميل البلاغات...</div>
+</div>
+<div class="admin-panel" id="ownerAdminManagers"><div class="provider-section-title"><h3>إدارة المشرفين</h3><span class="admin-badge">للمالك فقط</span></div><p class="muted">أضف مشرفًا باستخدام البريد الإلكتروني لحساب مسجل بالفعل. المشرف يستطيع متابعة الطلبات والإعلانات والبلاغات، ولا يستطيع تغيير العمولة أو إدارة مشرفين آخرين أو الاطلاع على الحسابات المالية.</p><div class="owner-admin-actions"><input id="newAdminEmail" type="email" autocomplete="email" placeholder="البريد الإلكتروني لحساب مسجل"><button type="button" onclick="addPlatformModerator()">＋ إضافة مشرف</button></div><div id="ownerAdminList">جارٍ تحميل قائمة المشرفين...</div></div><div class="admin-panel"><h3>إدارة المستخدمين</h3><input id="ownerUserSearch" type="search" placeholder="ابحث بالاسم أو رقم الهاتف" oninput="filterOwnerUsers()" style="width:100%;padding:11px;border:1px solid #dce5e8;border-radius:10px;margin:8px 0"><div id="ownerUsers" aria-live="polite">جارٍ تحميل الحسابات...</div></div><div class="admin-panel"><h3>متابعة الطلبات والمشاوير</h3><div id="ownerRides" aria-live="polite">جارٍ تحميل الطلبات...</div></div><div class="admin-panel"><div class="provider-section-title"><h3>مراقبة محادثات خِدمة</h3><button type="button" class="secondary" onclick="loadChatModeration()">↻ تحديث المراقبة</button></div><p class="muted">يستطيع المالك مراجعة الرسائل والبلاغات وإخفاء الرسائل المخالفة دون حذف سجلها.</p><div id="chatModerationReports">جارٍ تحميل البلاغات...</div><h4>أحدث الرسائل</h4><div id="chatModerationMessages">جارٍ تحميل الرسائل...</div></div><div class="admin-panel"><div class="provider-section-title"><h3>مراقبة محادثات الإعلانات والبيع والشراء</h3><button type="button" class="secondary" onclick="loadListingChatModeration()">↻ تحديث</button></div><p class="muted">مراجعة البلاغات والرسائل، وإخفاء المحتوى المخالف مع الاحتفاظ بالسجل.</p><div id="listingChatReports">جارٍ تحميل البلاغات...</div><h4>أحدث الرسائل</h4><div id="listingChatRecent">جارٍ تحميل الرسائل...</div></div><h3>إدارة الإعلانات</h3><div class="tabs"><button class="secondary" onclick="loadOwnerListings('all')">الكل</button><button class="secondary" onclick="loadOwnerListings('active')">نشطة</button><button class="secondary" onclick="loadOwnerListings('paused')">موقوفة</button></div><div id="ownerListings"></div><div id="ownerFinancialSection"><h3>الحسابات والعمولات</h3><div class="grid" id="commissionStats"><div class="item">جارٍ تحميل الحسابات...</div></div><div class="item"><b>محفظة الاستلام:</b> Vodafone Cash باسم مالك التطبيق<br><span class="muted">التحويل غير مفعل حتى اعتماد حساب Paymob Payout وربط بياناته السرية داخل الخادم.</span></div><h3>سجل العمولات</h3><div id="commissionLedger" class="item">جارٍ تحميل السجل...</div><h3>إعدادات العمولات</h3><p class="muted">10% للأقسام الخاضعة للعمولة، بحد أدنى 5 جنيهات. الوظائف 0%. لا يوجد تحصيل حقيقي حتى تفعيل بوابة الدفع.</p><div id="ownerRates"></div><button onclick="saveCommissionSettings()">حفظ نسب العمولات</button><h3>ملاحظات تشغيلية</h3><div class="item">لا توجد بوابة دفع أو تحصيل إلكتروني متصلة بعد.</div><div class="item">لا تستخدم التطبيق لتشغيل رحلات فعلية قبل استكمال التراخيص والتحقق من السائقين وإجراءات السلامة.</div></div></section><div id="listingChatPanel" class="listing-chat-panel hidden"><div class="provider-section-title"><h3 id="listingChatTitle">محادثة الإعلان</h3><button type="button" class="secondary" onclick="closeListingChat()">إغلاق</button></div><p class="muted">المحادثة مرتبطة بالإعلان، وقد تُراجع من إدارة خِدمة عند البلاغات أو لأسباب السلامة. لا ترسل كلمات مرور أو بيانات بنكية أو معلومات حساسة.</p><div id="listingChatMessages" class="listing-chat-messages"></div><div id="listingChatComposer"><textarea id="listingChatInput" maxlength="2000" class="listing-chat-input" placeholder="اكتب رسالتك..."></textarea><button type="button" onclick="sendListingChatMessage()">إرسال</button></div></div></section></main>
 <script>
 const SUPABASE_URL="https://ycawavrgrettwxsdgssi.supabase.co";
 const SUPABASE_KEY="sb_publishable_NN7fLCH7DSQT6nh4jU72rg_VveeGeHs";
@@ -406,7 +438,7 @@ async function removePlatformModerator(email){
  msg("تمت إزالة صلاحية المشرف دون حذف الحساب أو بياناته.");await loadPlatformAdminManagers();
 }
 
-async function enterApp(){if(!await ensureTermsAcceptance())return;document.getElementById("auth").classList.add("hidden");document.getElementById("app").classList.remove("hidden");const {data,error}=await db.from("profiles").select("*").eq("id",currentUser.id).maybeSingle();if(error){msg("خطأ في قراءة الحساب: "+error.message);return}currentProfile=data;currentAdminLevel="";if(currentProfile?.role==="admin"){const {data:membership,error:membershipError}=await db.from("platform_admins").select("access_level").eq("user_id",currentUser.id).maybeSingle();if(membershipError){msg("تعذر التحقق من صلاحيات الإدارة: "+membershipError.message);return}currentAdminLevel=membership?.access_level||"moderator"}if(!currentProfile){const meta=currentUser.user_metadata||{},emailName=(currentUser.email||"").split("@")[0],full_name=meta.full_name||meta.name||document.getElementById("name").value.trim()||emailName||"مستخدم خِدمة",phone=meta.phone||document.getElementById("phone").value.trim()||null,role="customer";const {data:p,error:e}=await db.from("profiles").insert({id:currentUser.id,full_name,phone,role}).select().single();if(e){msg("تعذر إنشاء ملف الحساب: "+e.message);return}currentProfile=p}document.getElementById("ownerTab").classList.toggle("hidden",!currentAdminLevel);document.getElementById("ownerAdminManagers")?.classList.toggle("hidden",!isPlatformOwner());document.getElementById("ownerFinancialSection")?.classList.toggle("hidden",!isPlatformOwner());document.getElementById("providerTab").classList.toggle("hidden",!["provider","driver"].includes(currentProfile.role));document.getElementById("welcome").textContent="أهلاً "+(currentProfile.full_name||"بك");document.getElementById("driverRide").classList.toggle("hidden",currentProfile.role!=="driver");document.getElementById("customerRide").classList.toggle("hidden",currentProfile.role==="driver");showHome();startNotificationMonitoring();msg("تم تسجيل الدخول")}
+async function enterApp(){if(!await ensureTermsAcceptance())return;document.getElementById("auth").classList.add("hidden");document.getElementById("app").classList.remove("hidden");const {data,error}=await db.from("profiles").select("*").eq("id",currentUser.id).maybeSingle();if(error){msg("خطأ في قراءة الحساب: "+error.message);return}currentProfile=data;currentAdminLevel="";if(currentProfile?.role==="admin"){const {data:membership,error:membershipError}=await db.from("platform_admins").select("access_level").eq("user_id",currentUser.id).maybeSingle();if(membershipError){msg("تعذر التحقق من صلاحيات الإدارة: "+membershipError.message);return}currentAdminLevel=membership?.access_level||"moderator"}if(!currentProfile){const meta=currentUser.user_metadata||{},emailName=(currentUser.email||"").split("@")[0],full_name=meta.full_name||meta.name||document.getElementById("name").value.trim()||emailName||"مستخدم خِدمة",phone=meta.phone||document.getElementById("phone").value.trim()||null,role="customer";const {data:p,error:e}=await db.from("profiles").insert({id:currentUser.id,full_name,phone,role}).select().single();if(e){msg("تعذر إنشاء ملف الحساب: "+e.message);return}currentProfile=p}document.getElementById("ownerTab").classList.toggle("hidden",!currentAdminLevel);document.getElementById("ownerAdminManagers")?.classList.toggle("hidden",!isPlatformOwner());document.getElementById("ownerFinancialSection")?.classList.toggle("hidden",!isPlatformOwner());document.getElementById("providerTab").classList.toggle("hidden",!["provider","driver"].includes(currentProfile.role));document.getElementById("welcome").textContent="أهلاً "+(currentProfile.full_name||"بك");document.getElementById("driverRide").classList.toggle("hidden",currentProfile.role!=="driver");document.getElementById("customerRide").classList.toggle("hidden",currentProfile.role==="driver");document.getElementById("driverVerificationPanel")?.classList.toggle("hidden",currentProfile.role!=="driver");document.getElementById("driverSafetyActions")?.classList.toggle("hidden",currentProfile.role!=="driver");showHome();if(currentProfile.role==="driver")await loadDriverVerification();else await loadMySafetyReports();startNotificationMonitoring();msg("تم تسجيل الدخول")}
 async function loadProviderDashboard(){
  if(!["provider","driver"].includes(currentProfile?.role)||!currentUser)return;
  const stats=document.getElementById("providerStats"),list=document.getElementById("providerListings"),ridesBox=document.getElementById("providerRides");
@@ -473,7 +505,7 @@ async function loadOwnerDashboard(){
   rates.innerHTML=(data||[]).map(x=>'<div class="item"><b>'+safe(categoryName(x.category))+'</b><label>النسبة %</label><input type="number" min="0" max="30" step="0.25" id="rate_'+safe(x.category)+'" value="'+Number(x.rate_percent)+'"><label>الحد الأدنى بالجنيه</label><input type="number" min="0" step="0.5" id="min_'+safe(x.category)+'" value="'+Number(x.minimum_fee)+'"></div>').join("");
   await loadCommissionDashboard();
  }
- await loadOwnerListings('all');await loadOwnerUsers();await loadOwnerRides();await loadChatModeration();await loadListingChatModeration();
+ await loadOwnerListings('all');await loadOwnerUsers();await loadOwnerRides();await loadChatModeration();await loadListingChatModeration();if(owner){await loadOwnerDriverVerifications();await loadOwnerSafetyReports()}
 }
 async function loadCommissionDashboard(){
  const stats=document.getElementById("commissionStats"),ledger=document.getElementById("commissionLedger");
@@ -783,8 +815,150 @@ async function loadMyRides(){
  attachRideChatButtons(box,rows,'customer');
 }
 async function startRidePayment(rideId){msg("جارٍ تجهيز صفحة الدفع...");const {data,error}=await db.functions.invoke("paymob-checkout",{body:{ride_id:rideId}});if(error){msg("تعذر الاتصال بخدمة الدفع. تأكد من إعداد حساب Paymob.");return}if(data?.error){msg(data.error);return}if(data?.checkout_url){window.location.href=data.checkout_url;return}msg("لم يصل رابط الدفع من بوابة Paymob")}
+
+const DRIVER_DOC_TYPES=[
+ {key:"identity",input:"driverIdentityDoc",label:"البطاقة الشخصية"},
+ {key:"driving_license",input:"driverLicenseDoc",label:"رخصة القيادة"},
+ {key:"vehicle_license",input:"vehicleLicenseDoc",label:"رخصة المركبة"}
+];
+function verificationStatusLabel(status){
+ return ({not_verified:"غير موثق",pending:"قيد المراجعة",approved:"موثق",rejected:"مرفوض",needs_info:"مطلوب استكمال مستندات",suspended:"موقوف"})[status]||"غير موثق";
+}
+async function loadDriverVerification(){
+ if(currentProfile?.role!=="driver"||!currentUser)return;
+ const box=document.getElementById("driverVerificationStatus"),badge=document.getElementById("driverVerificationBadge");
+ const {data,error}=await db.from("driver_verifications").select("*").eq("user_id",currentUser.id).maybeSingle();
+ if(error){box.textContent="تعذر تحميل حالة التوثيق: "+error.message;return}
+ const row=data||{status:"not_verified",document_paths:{}};
+ badge.textContent=verificationStatusLabel(row.status);
+ box.innerHTML='<b>حالة حسابك: '+safe(verificationStatusLabel(row.status))+'</b>'+
+  (row.owner_note?'<p>'+safe(row.owner_note)+'</p>':'')+
+  (row.submitted_at?'<small>آخر إرسال: '+safe(rideDate(row.submitted_at))+'</small>':'')+
+  (row.vehicle_type?'<p>المركبة: '+safe(row.vehicle_type)+' · اللوحة: '+safe(row.vehicle_plate||"غير مسجلة")+'</p>':'')+
+  (row.status==="approved"?'<p>تم اعتماد مستنداتك. تذكير: اعتماد خِدمة لا يغني عن التراخيص الحكومية اللازمة قبل التشغيل الفعلي.</p>':
+   '<p class="muted">لن تظهر لك طلبات المشاوير ولن تستطيع قبولها حتى اعتماد التوثيق.</p>');
+ document.getElementById("driverVerificationForm").classList.toggle("hidden",row.status==="approved"||row.status==="suspended");
+ document.getElementById("availableRides")?.closest(".ride-panel")?.classList.toggle("hidden",row.status!=="approved");
+ document.getElementById("acceptedRides")?.closest(".ride-panel")?.classList.toggle("hidden",false);
+ if(row.status==="approved")loadRides();
+ await loadMySafetyReports();
+}
+async function submitDriverVerification(){
+ if(!currentUser||currentProfile?.role!=="driver"){msg("هذه الخدمة لحسابات السائقين فقط.");return}
+ const vehicleType=document.getElementById("driverVehicleType").value.trim();
+ const vehiclePlate=document.getElementById("driverVehiclePlate").value.trim();
+ if(!vehicleType||!vehiclePlate){msg("اكتب نوع المركبة ورقم اللوحة.");return}
+ const button=document.getElementById("submitDriverVerificationButton");button.disabled=true;button.textContent="جارٍ رفع المستندات...";
+ const paths={};
+ try{
+  for(const item of DRIVER_DOC_TYPES){
+   const input=document.getElementById(item.input),file=input.files?.[0];
+   if(!file)throw new Error("اختر ملف "+item.label+" أولًا.");
+   if(file.size>10*1024*1024)throw new Error("حجم ملف "+item.label+" أكبر من 10 ميجابايت.");
+   const ext=(file.name.split(".").pop()||"bin").toLowerCase();
+   const allowed=["jpg","jpeg","png","webp","pdf"];
+   if(!allowed.includes(ext))throw new Error("صيغة ملف "+item.label+" غير مسموحة.");
+   const path=currentUser.id+"/"+item.key+"_"+Date.now()+"_"+Math.random().toString(36).slice(2,8)+"."+ext;
+   const {error}=await db.storage.from("driver-verification").upload(path,file,{upsert:false,contentType:file.type});
+   if(error)throw error;
+   paths[item.key]=path;
+  }
+  const {error}=await db.rpc("submit_driver_verification",{
+   p_vehicle_type:vehicleType,p_vehicle_plate:vehiclePlate,p_document_paths:paths,
+   p_driver_note:document.getElementById("driverVerificationNote").value.trim()
+  });
+  if(error)throw error;
+  msg("تم إرسال مستنداتك بنجاح، وحالة الطلب الآن قيد المراجعة.");
+  DRIVER_DOC_TYPES.forEach(x=>document.getElementById(x.input).value="");
+  await loadDriverVerification();
+ }catch(e){msg("تعذر إرسال طلب التوثيق: "+(e?.message||"حدث خطأ"))}
+ finally{button.disabled=false;button.textContent="إرسال المستندات للمراجعة"}
+}
+async function loadOwnerDriverVerifications(){
+ if(!isPlatformOwner())return;
+ const box=document.getElementById("ownerDriverVerifications");box.textContent="جارٍ تحميل الطلبات...";
+ const {data,error}=await db.from("driver_verifications").select("*").order("updated_at",{ascending:false}).limit(100);
+ if(error){box.textContent="تعذر تحميل الطلبات: "+error.message;return}
+ const rows=data||[];
+ if(!rows.length){box.textContent="لا توجد طلبات توثيق حتى الآن.";return}
+ const ids=[...new Set(rows.map(x=>x.user_id))];
+ const {data:profiles}=await db.from("profiles").select("id,full_name,phone").in("id",ids);
+ const cards=[];
+ for(const row of rows){
+  const p=(profiles||[]).find(x=>x.id===row.user_id)||{};
+  const docs=row.document_paths||{},links=[];
+  for(const [key,label] of [["identity","البطاقة الشخصية"],["driving_license","رخصة القيادة"],["vehicle_license","رخصة المركبة"]]){
+   if(docs[key]){
+    const {data:signed}=await db.storage.from("driver-verification").createSignedUrl(docs[key],60);
+    links.push(signed?.signedUrl?'<a target="_blank" rel="noopener" href="'+safe(signed.signedUrl)+'">'+label+'</a>':'<span>'+label+': تعذر إنشاء رابط آمن</span>');
+   }else links.push('<span>'+label+': غير مرفوعة</span>');
+  }
+  cards.push('<article class="admin-record"><b>'+safe(p.full_name||"سائق")+' · '+safe(verificationStatusLabel(row.status))+'</b>'+
+   '<p>الهاتف: '+safe(p.phone||"غير مسجل")+'</p><p>المركبة: '+safe(row.vehicle_type||"—")+' · اللوحة: '+safe(row.vehicle_plate||"—")+'</p>'+
+   '<p>'+links.join(" · ")+'</p><p>ملاحظات السائق: '+safe(row.driver_note||"لا توجد")+'</p>'+
+   '<p>ملاحظات المالك الحالية: '+safe(row.owner_note||"لا توجد")+'</p>'+
+   '<div class="grid"><button type="button" onclick="reviewDriverVerification(\''+safe(row.user_id)+'\',\'approve\')">اعتماد السائق</button>'+
+   '<button type="button" class="secondary" onclick="reviewDriverVerification(\''+safe(row.user_id)+'\',\'needs_info\')">طلب استكمال</button>'+
+   '<button type="button" class="secondary" onclick="reviewDriverVerification(\''+safe(row.user_id)+'\',\'reject\')">رفض</button>'+
+   '<button type="button" class="danger" onclick="reviewDriverVerification(\''+safe(row.user_id)+'\',\'suspend\')">إيقاف</button></div></article>');
+ }
+ box.innerHTML=cards.join("");
+}
+async function reviewDriverVerification(userId,action){
+ if(!isPlatformOwner())return;
+ const note=(prompt("اكتب ملاحظة أو سبب القرار (اختياري):")||"").trim();
+ const labels={approve:"اعتماد",needs_info:"طلب استكمال",reject:"رفض",suspend:"إيقاف"};
+ if(!confirm("تأكيد "+labels[action]+" طلب توثيق السائق؟"))return;
+ const {error}=await db.rpc("owner_review_driver_verification",{p_user_id:userId,p_action:action,p_note:note});
+ if(error){msg("تعذر حفظ قرار المراجعة: "+error.message);return}
+ msg("تم تحديث حالة توثيق السائق.");await loadOwnerDriverVerifications();
+}
+async function openSafetyReport(){
+ if(!currentUser){msg("سجّل الدخول أولًا.");return}
+ const categoryInput=(prompt("نوع البلاغ: قيادة غير آمنة / حادث / مضايقة / مشكلة مركبة / احتيال / أخرى")||"").trim();
+ if(!categoryInput)return;
+ const category=/حادث/.test(categoryInput)?"accident":/مضايقة/.test(categoryInput)?"harassment":/مركبة/.test(categoryInput)?"vehicle_issue":/احتيال/.test(categoryInput)?"fraud":/قيادة/.test(categoryInput)?"unsafe_driving":"other";
+ const details=(prompt("اشرح المشكلة باختصار (5 إلى 2000 حرف):")||"").trim();
+ if(details.length<5){msg("اكتب تفاصيل أوضح للبلاغ.");return}
+ const phone=(prompt("رقم للتواصل (اختياري):")||"").trim();
+ const {error}=await db.from("safety_reports").insert({reporter_id:currentUser.id,category,details,contact_phone:phone||null});
+ if(error){msg("تعذر إرسال البلاغ: "+error.message);return}
+ msg("تم إرسال بلاغ السلامة إلى إدارة خِدمة.");await loadMySafetyReports();
+}
+async function loadMySafetyReports(){
+ if(!currentUser)return;
+ const box=document.getElementById("mySafetyReports");if(!box)return;
+ const {data,error}=await db.from("safety_reports").select("id,category,status,created_at,owner_note").eq("reporter_id",currentUser.id).order("created_at",{ascending:false}).limit(10);
+ if(error){box.textContent="تعذر تحميل بلاغاتك.";return}
+ box.innerHTML=(data||[]).map(x=>'<div class="item">بلاغ '+safe(x.category)+' · '+safe(x.status)+' · '+safe(rideDate(x.created_at))+(x.owner_note?'<p>'+safe(x.owner_note)+'</p>':'')+'</div>').join("")||"لا توجد بلاغات مسجلة.";
+}
+async function loadOwnerSafetyReports(){
+ if(!isPlatformOwner())return;
+ const box=document.getElementById("ownerSafetyReports");box.textContent="جارٍ تحميل البلاغات...";
+ const {data,error}=await db.from("safety_reports").select("*").order("created_at",{ascending:false}).limit(100);
+ if(error){box.textContent="تعذر تحميل البلاغات: "+error.message;return}
+ const rows=data||[];
+ if(!rows.length){box.textContent="لا توجد بلاغات سلامة حتى الآن.";return}
+ const ids=[...new Set(rows.map(x=>x.reporter_id))];
+ const {data:profiles}=await db.from("profiles").select("id,full_name,phone").in("id",ids);
+ box.innerHTML=rows.map(x=>{
+  const p=(profiles||[]).find(y=>y.id===x.reporter_id)||{};
+  return '<article class="admin-record"><b>'+safe(x.category)+' · '+safe(x.status)+'</b><p>'+safe(x.details)+'</p><p>المبلّغ: '+safe(p.full_name||"مستخدم")+' · '+safe(p.phone||x.contact_phone||"لا يوجد رقم")+'</p><small>'+safe(rideDate(x.created_at))+' · '+safe(x.id)+'</small><p>'+safe(x.owner_note||"")+'</p>'+
+   (x.status!=="resolved"&&x.status!=="dismissed"?'<div class="grid"><button onclick="reviewSafetyReport(\''+safe(x.id)+'\',\'review\')">قيد المراجعة</button><button onclick="reviewSafetyReport(\''+safe(x.id)+'\',\'resolve\')">تم الحل</button><button class="secondary" onclick="reviewSafetyReport(\''+safe(x.id)+'\',\'dismiss\')">إغلاق</button></div>':'')+'</article>';
+ }).join("");
+}
+async function reviewSafetyReport(id,action){
+ if(!isPlatformOwner())return;
+ const note=(prompt("ملاحظة إدارية للبلاغ (اختياري):")||"").trim();
+ const {error}=await db.rpc("owner_review_safety_report",{p_report_id:id,p_action:action,p_note:note});
+ if(error){msg("تعذر تحديث البلاغ: "+error.message);return}
+ msg("تم تحديث حالة البلاغ.");await loadOwnerSafetyReports();
+}
+
 async function loadRides(){
  const available=document.getElementById("availableRides"),accepted=document.getElementById("acceptedRides");if(!available||!accepted)return;
+ const {data:verification,error:verificationError}=await db.from("driver_verifications").select("status").eq("user_id",currentUser.id).maybeSingle();
+ if(verificationError||verification?.status!=="approved"){available.innerHTML="<div class=\"ride-empty\">استقبال المشاوير متوقف حتى اعتماد توثيق السائق من إدارة خِدمة.</div>";return;}
  available.innerHTML='<div class="ride-loading">جارٍ البحث عن الطلبات المتاحة...</div>';
  const {data,error}=await db.from("rides").select("*").eq("status","pending").is("driver_id",null).order("created_at",{ascending:false}).limit(50);
  if(error){available.innerHTML='<div class="ride-empty">تعذر تحميل الطلبات المتاحة. حاول مرة أخرى.</div>';return}
