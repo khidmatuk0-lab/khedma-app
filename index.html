@@ -473,13 +473,56 @@ function filterOwnerUsers(){
  box.innerHTML=rows.map(p=>'<div class="admin-record"><b>'+safe(p.full_name||"بدون اسم")+'</b><p>'+safe(p.role||"غير محدد")+' · '+safe(p.phone||"لا يوجد رقم مسجل")+'</p><small>معرّف الحساب: '+safe(p.id)+' · '+safe(p.created_at?rideDate(p.created_at):"")+'</small></div>').join("")||"لا توجد حسابات مطابقة.";
 }
 
+function rideTrackingPhoneLinks(phone){
+ const raw=String(phone||"").trim();if(!raw)return '<span class="muted">لا يوجد رقم مسجل</span>';
+ let digits=raw.replace(/\\D/g,"");
+ if(digits.startsWith("00"))digits=digits.slice(2);
+ if(digits.startsWith("0"))digits="20"+digits.slice(1);
+ const tel=digits;
+ return '<a href="tel:'+safe(tel)+'">📞 اتصال</a> · <a target="_blank" rel="noopener" href="https://wa.me/'+safe(digits)+'">واتساب</a><div class="muted">'+safe(raw)+'</div>';
+}
+function rideTrackingStatus(status){
+ return ({pending:"بانتظار سائق",accepted:"السائق في الطريق / المشوار جارٍ",completed:"مكتمل",cancelled:"ملغي",rejected:"مرفوض"})[status]||String(status||"غير محدد");
+}
 async function loadOwnerRides(){
- if(!currentAdminLevel)return;
+ if(!isPlatformOwner())return;
  const box=document.getElementById("ownerRides");if(!box)return;
- box.textContent="جارٍ تحميل أحدث الطلبات...";
- const {data,error}=await db.from("rides").select("*").order("created_at",{ascending:false}).limit(50);
- if(error){box.textContent="تعذر تحميل الطلبات: "+error.message;return}
- box.innerHTML=(data||[]).map(r=>'<div class="admin-record"><b>'+safe(rideStatusLabel(r.status))+'</b><p>'+safe(r.pickup_address||"")+' ← '+safe(r.destination_address||"")+'</p><p>'+safe(r.governorate||"")+' · '+(r.price==null?"السعر غير محدد":safe(Number(r.price).toLocaleString("ar-EG"))+" جنيه")+'</p><small>'+safe(rideDate(r.created_at))+' · رقم الطلب: '+safe(r.id)+'</small></div>').join("")||"لا توجد طلبات حتى الآن.";
+ box.innerHTML='<div class="item">جارٍ تحميل بيانات المشاوير ووسائل التواصل...</div>';
+ const {data:rData,error}=await db.from("rides").select("*").order("created_at",{ascending:false}).limit(100);
+ if(error){box.textContent="تعذر تحميل المشاوير: "+error.message;return}
+ const rides=rData||[];
+ if(!rides.length){box.textContent="لا توجد مشاوير مسجلة حتى الآن.";return}
+ const userIds=[...new Set(rides.flatMap(r=>[r.customer_id,r.driver_id]).filter(Boolean))];
+ const {data:pData,error:pError}=userIds.length?await db.from("profiles").select("id,full_name,phone,role").in("id",userIds):{data:[],error:null};
+ if(pError){box.textContent="تعذر تحميل بيانات أطراف المشاوير: "+pError.message;return}
+ const profiles=pData||[];
+ const rideIds=rides.map(r=>r.id);
+ const {data:convs,error:cError}=await db.from("ride_conversations").select("id,ride_id,customer_id,provider_id,status,last_message_at").in("ride_id",rideIds);
+ if(cError){box.textContent="تعذر تحميل محادثات المشاوير: "+cError.message;return}
+ const convsList=convs||[],convIds=convsList.map(x=>x.id);
+ let messages=[];
+ if(convIds.length){
+  const {data:mData,error:mError}=await db.from("ride_chat_messages").select("id,conversation_id,sender_id,body,moderation_status,created_at").in("conversation_id",convIds).order("created_at",{ascending:true}).limit(1000);
+  if(mError){box.textContent="تعذر تحميل رسائل التواصل: "+mError.message;return}
+  messages=mData||[];
+ }
+ const byUser=id=>profiles.find(p=>p.id===id)||null;
+ const cards=rides.map(r=>{
+  const customer=byUser(r.customer_id),driver=byUser(r.driver_id);
+  const conversations=convsList.filter(x=>x.ride_id===r.id);
+  const related=messages.filter(m=>conversations.some(x=>x.id===m.conversation_id));
+  const person=(label,p)=>'<div class="item"><b>'+label+': '+safe(p?.full_name||"غير متاح")+'</b><p>الدور: '+safe(p?.role||"غير محدد")+'</p><p>'+rideTrackingPhoneLinks(p?.phone)+'</p><small>معرّف الحساب: '+safe(p?.id||"غير مرتبط")+'</small></div>';
+  const transcript=related.map(m=>{
+   const sender=byUser(m.sender_id);
+   return '<div class="item"><b>'+safe(sender?.full_name||"مستخدم")+'</b> <small>'+safe(rideDate(m.created_at))+'</small><p style="white-space:pre-wrap">'+safe(m.body)+'</p>'+(m.moderation_status&&m.moderation_status!=="visible"?'<small>حالة الرسالة: '+safe(m.moderation_status)+'</small>':'')+'</div>';
+  }).join("");
+  const chatHtml=conversations.length?'<details><summary>سجل المحادثة بين العميل والسائق ('+related.length+' رسالة)</summary><div class="ride-tracking-chat">'+(transcript||'<p class="muted">لا توجد رسائل نصية في المحادثة.</p>')+'</div></details>':'<p class="muted">لا توجد محادثة داخل التطبيق مرتبطة بهذا المشوار.</p>';
+  return '<article class="admin-record ride-tracking-card"><div class="provider-section-title"><b>المشوار: '+safe(rideTrackingStatus(r.status))+'</b><small>'+safe(rideDate(r.created_at))+'</small></div>'+
+   '<p><b>رقم الطلب:</b> '+safe(r.id)+'</p><p><b>المسار:</b> '+safe(r.pickup_address||"—")+' ← '+safe(r.destination_address||"—")+'</p>'+
+   '<p><b>المحافظة:</b> '+safe(r.governorate||"—")+' · <b>السعر:</b> '+(r.price==null?"غير محدد":safe(Number(r.price).toLocaleString("ar-EG"))+" جنيه")+'</p>'+
+   '<div class="grid">'+person("العميل",customer)+person("السائق",driver)+'</div>'+chatHtml+'</article>';
+ }).join("");
+ box.innerHTML='<div class="provider-section-title"><b>متابعة المشاوير — آخر '+rides.length+' طلب</b><button type="button" class="secondary" onclick="loadOwnerRides()">↻ تحديث البيانات</button></div><p class="muted">هذه البيانات للمالك فقط لأغراض متابعة التشغيل والسلامة وحل النزاعات. تُعرض بيانات الاتصال المسجلة وسجل رسائل التطبيق المرتبط بالمشوار.</p>'+cards;
 }
 async function loadOwnerDashboard(){
  if(!currentAdminLevel)return;
