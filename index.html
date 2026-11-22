@@ -228,6 +228,13 @@ button:hover{transform:translateY(-1px);box-shadow:0 8px 18px #087f8c30}
 <button onclick="signup()">إنشاء حساب جديد</button><button id="completeGoogleProfileButton" class="secondary hidden" type="button" onclick="completeGoogleProfile()">إكمال التسجيل بحساب Google</button><label style="display:flex;gap:8px;align-items:center;font-size:14px"><input id="agree" type="checkbox" style="width:auto"> أوافق على شروط الاستخدام وسياسة الخصوصية وإقرار الوساطة وحدود مسؤولية المنصة.</label><div class="legal-notice"><b>تنبيه وإقرار مهم قبل التسجيل</b>خِدمة منصة إلكترونية وسيطة لعرض الإعلانات وربط المستخدمين ببعضهم، وليست بائعًا أو مشتريًا أو مالكًا للسلع أو العقارات أو جهة توظيف أو مقدمًا مباشرًا للخدمات أو النقل. المستخدم مسؤول عن صحة بياناته وإعلانه وسعره وتراخيصه وسلوكه والاتفاق والتنفيذ والدفع والتحقق من الطرف الآخر. لا تضمن المنصة هوية المستخدم أو جودة السلعة أو الخدمة أو إتمام الاتفاق، وتتيح الإبلاغ والمراجعة واتخاذ إجراءات وفق الشروط. قد تُراجع المحادثات المبلغ عنها أو عند الحاجة الأمنية، ولا تعني المراجعة ضمان منع كل مخالفة. لا يُقصد بهذا الإقرار إعفاء المنصة من أي مسؤولية لا يجوز استبعادها قانونًا.</div><p class="muted">نسخة تجريبية للاختبار فقط؛ لا تستخدمها لرحلات أو مدفوعات حقيقية. لا تشارك كلمة مرورك أو بياناتك الحساسة.</p></section>
 <section class="card hidden" id="app"><div class="tabs"><button class="secondary" onclick="showHome()">الرئيسية</button><button class="secondary" onclick="showCreate()">أضف إعلانًا أو خدمة</button><button class="secondary" onclick="showRides()">المشاوير</button><button class="secondary hidden" id="providerTab" onclick="showProviderDashboard()">لوحة مقدم الخدمة</button><button class="secondary" onclick="changePassword()">تغيير كلمة المرور</button><button class="secondary hidden" id="ownerTab" onclick="showOwner()">لوحة المالك</button><button class="danger" onclick="logout()">خروج</button></div>
 <div class="notification-bar"><button type="button" class="secondary" id="notificationToggle" onclick="toggleNotifications()">🔔 الإشعارات <span id="notificationCount" class="notification-count">0</span></button><button type="button" class="secondary" id="notificationPermission" onclick="enableBrowserNotifications()">تفعيل تنبيهات الهاتف</button></div><div id="notificationPanel" class="notification-panel hidden"><div class="provider-section-title"><b>آخر التنبيهات</b><button type="button" class="secondary" onclick="clearAppNotifications()">مسح القائمة</button></div><div id="notificationItems" aria-live="polite">لا توجد تنبيهات جديدة.</div></div><h2 id="welcome"></h2>
+<div id="accountRoleCard" class="item" style="border:1px solid #cfe8df;background:#f4fbf8">
+ <b>نوع حسابك الحالي</b><p id="accountRoleLabel" style="font-size:18px;margin:8px 0">جارٍ تحميل نوع الحساب...</p>
+ <label for="accountRoleSelect">تغيير نوع الحساب</label>
+ <select id="accountRoleSelect"><option value="customer">عميل</option><option value="driver">سائق</option><option value="provider">مقدم خدمة / بائع</option></select>
+ <button type="button" id="changeAccountRoleButton" onclick="changeMyAccountRole()">تأكيد تغيير نوع الحساب</button>
+ <p class="muted">لن تُحذف طلباتك أو رحلاتك السابقة عند تغيير نوع الحساب. السائق لا يستطيع استقبال المشاوير إلا بعد استكمال التوثيق واعتماده.</p>
+</div>
 <section id="home"><div class="item"><b>نظام رسوم منصة خدمة (تجريبي)</b><p>العمولة المعتمدة مبدئيًا: 10% من قيمة العملية، بحد أدنى 5 جنيهات عند إتمامها. قسم الوظائف: بدون عمولة.</p><p class="muted">لا يتم تحصيل رسوم في النسخة التجريبية. التحصيل يتطلب بوابة دفع وتسويات واختبارات وموافقة واضحة قبل الدفع.</p></div><h2>اختار الخدمة اللي محتاجها</h2><div class="grid" id="categories"></div>
 <label>المحافظة</label><select id="filterGov"></select><div class="item"><h3>دليل الأماكن القريبة</h3><p class="muted">مطاعم وصيدليات وأسواق في قنا ودشنا. اتصل للتأكد من التوافر ومواعيد العمل قبل الذهاب.</p><input id="directorySearch" placeholder="ابحث باسم المكان أو المنطقة"><select id="directoryType"><option value="all">كل الأماكن</option><option value="restaurant">مطاعم</option><option value="pharmacy">صيدليات</option><option value="market">سوبر ماركت وأسواق</option></select><div id="localDirectory"></div></div><div id="beautyRecipePanel" class="item hidden" style="margin:16px 0">
  <h3>🌿 وصفات ونصائح للعناية بالبشرة والشعر</h3>
@@ -438,7 +445,48 @@ async function removePlatformModerator(email){
  msg("تمت إزالة صلاحية المشرف دون حذف الحساب أو بياناته.");await loadPlatformAdminManagers();
 }
 
-async function enterApp(){if(!await ensureTermsAcceptance())return;document.getElementById("auth").classList.add("hidden");document.getElementById("app").classList.remove("hidden");const {data,error}=await db.from("profiles").select("*").eq("id",currentUser.id).maybeSingle();if(error){msg("خطأ في قراءة الحساب: "+error.message);return}currentProfile=data;currentAdminLevel="";if(currentProfile?.role==="admin"){const {data:membership,error:membershipError}=await db.from("platform_admins").select("access_level").eq("user_id",currentUser.id).maybeSingle();if(membershipError){msg("تعذر التحقق من صلاحيات الإدارة: "+membershipError.message);return}currentAdminLevel=membership?.access_level||"moderator"}if(!currentProfile){const meta=currentUser.user_metadata||{},emailName=(currentUser.email||"").split("@")[0],full_name=meta.full_name||meta.name||document.getElementById("name").value.trim()||emailName||"مستخدم خِدمة",phone=meta.phone||document.getElementById("phone").value.trim()||null,role="customer";const {data:p,error:e}=await db.from("profiles").insert({id:currentUser.id,full_name,phone,role}).select().single();if(e){msg("تعذر إنشاء ملف الحساب: "+e.message);return}currentProfile=p}document.getElementById("ownerTab").classList.toggle("hidden",!currentAdminLevel);document.getElementById("ownerAdminManagers")?.classList.toggle("hidden",!isPlatformOwner());document.getElementById("ownerFinancialSection")?.classList.toggle("hidden",!isPlatformOwner());document.getElementById("providerTab").classList.toggle("hidden",!["provider","driver"].includes(currentProfile.role));document.getElementById("welcome").textContent="أهلاً "+(currentProfile.full_name||"بك");document.getElementById("driverRide").classList.toggle("hidden",currentProfile.role!=="driver");document.getElementById("customerRide").classList.toggle("hidden",currentProfile.role==="driver");document.getElementById("driverVerificationPanel")?.classList.toggle("hidden",currentProfile.role!=="driver");document.getElementById("driverSafetyActions")?.classList.toggle("hidden",currentProfile.role!=="driver");showHome();if(currentProfile.role==="driver")await loadDriverVerification();else await loadMySafetyReports();startNotificationMonitoring();msg("تم تسجيل الدخول")}
+
+function accountRoleLabel(role){return ({customer:"عميل",driver:"سائق",provider:"مقدم خدمة / بائع",admin:"إدارة"})[role]||"غير محدد"}
+function renderAccountRoleCard(){
+ const card=document.getElementById("accountRoleCard");if(!card||!currentProfile)return;
+ const role=currentProfile.role||"customer";
+ document.getElementById("accountRoleLabel").textContent=accountRoleLabel(role);
+ const select=document.getElementById("accountRoleSelect");select.value=role;
+ const locked=role==="admin"||!!currentAdminLevel;
+ select.disabled=locked;document.getElementById("changeAccountRoleButton").disabled=locked;
+ if(locked)document.getElementById("accountRoleLabel").textContent+=" — لا يمكن تغيير حساب الإدارة";
+}
+async function changeMyAccountRole(){
+ if(!currentUser||!currentProfile)return;
+ const next=document.getElementById("accountRoleSelect").value,old=currentProfile.role;
+ if(next===old){msg("نوع حسابك هو بالفعل "+accountRoleLabel(old));return}
+ const extra=next==="driver"?"\nسيتم تحويل الحساب إلى سائق، لكن استقبال المشاوير يظل متوقفًا حتى إرسال مستندات السائق واعتمادها.": "";
+ if(!confirm("هل تؤكد تغيير نوع الحساب من («"+accountRoleLabel(old)+"») إلى («"+accountRoleLabel(next)+"»)؟\nلن تُحذف طلباتك أو رحلاتك السابقة."+extra))return;
+ const button=document.getElementById("changeAccountRoleButton");button.disabled=true;button.textContent="جارٍ حفظ التغيير...";
+ const {data,error}=await db.rpc("change_my_profile_role",{p_new_role:next});
+ button.disabled=false;button.textContent="تأكيد تغيير نوع الحساب";
+ if(error){msg("تعذر تغيير نوع الحساب: "+error.message);document.getElementById("accountRoleSelect").value=old;return}
+ currentProfile.role=data?.role||next;
+ document.getElementById("providerTab").classList.toggle("hidden",!["provider","driver"].includes(currentProfile.role));
+ document.getElementById("driverRide").classList.toggle("hidden",currentProfile.role!=="driver");
+ document.getElementById("customerRide").classList.toggle("hidden",currentProfile.role==="driver");
+ document.getElementById("driverVerificationPanel")?.classList.toggle("hidden",currentProfile.role!=="driver");
+ document.getElementById("driverSafetyActions")?.classList.toggle("hidden",currentProfile.role!=="driver");
+ document.getElementById("driverWalletPanel")?.classList.toggle("hidden",currentProfile.role!=="driver");
+ renderAccountRoleCard();
+ if(currentProfile.role==="driver")await loadDriverVerification();else await loadMySafetyReports();
+ msg("تم تغيير نوع الحساب بنجاح إلى: "+accountRoleLabel(currentProfile.role));
+}
+async function ownerToggleAccountStatus(userId,status){
+ if(!isPlatformOwner())return;
+ const label=status==="suspended"?"إيقاف":"إعادة تنشيط";
+ if(!confirm("تأكيد "+label+" هذا الحساب؟"))return;
+ const {error}=await db.rpc("owner_set_account_status",{p_user_id:userId,p_status:status});
+ if(error){msg("تعذر تحديث حالة الحساب: "+error.message);return}
+ const row=ownerUsersCache.find(p=>p.id===userId);if(row)row.account_status=status;
+ filterOwnerUsers();msg("تم تحديث حالة الحساب إلى: "+(status==="suspended"?"موقوف":"نشط"));
+}
+async function enterApp(){if(!await ensureTermsAcceptance())return;document.getElementById("auth").classList.add("hidden");document.getElementById("app").classList.remove("hidden");const {data,error}=await db.from("profiles").select("*").eq("id",currentUser.id).maybeSingle();if(error){msg("خطأ في قراءة الحساب: "+error.message);return}currentProfile=data;currentAdminLevel="";if(currentProfile?.role==="admin"){const {data:membership,error:membershipError}=await db.from("platform_admins").select("access_level").eq("user_id",currentUser.id).maybeSingle();if(membershipError){msg("تعذر التحقق من صلاحيات الإدارة: "+membershipError.message);return}currentAdminLevel=membership?.access_level||"moderator"}if(!currentProfile){const meta=currentUser.user_metadata||{},emailName=(currentUser.email||"").split("@")[0],full_name=meta.full_name||meta.name||document.getElementById("name").value.trim()||emailName||"مستخدم خِدمة",phone=meta.phone||document.getElementById("phone").value.trim()||null,role="customer";const {data:p,error:e}=await db.from("profiles").insert({id:currentUser.id,full_name,phone,role}).select().single();if(e){msg("تعذر إنشاء ملف الحساب: "+e.message);return}currentProfile=p}document.getElementById("ownerTab").classList.toggle("hidden",!currentAdminLevel);document.getElementById("ownerAdminManagers")?.classList.toggle("hidden",!isPlatformOwner());document.getElementById("ownerFinancialSection")?.classList.toggle("hidden",!isPlatformOwner());document.getElementById("providerTab").classList.toggle("hidden",!["provider","driver"].includes(currentProfile.role));document.getElementById("welcome").textContent="أهلاً "+(currentProfile.full_name||"بك");renderAccountRoleCard();document.getElementById("driverRide").classList.toggle("hidden",currentProfile.role!=="driver");document.getElementById("customerRide").classList.toggle("hidden",currentProfile.role==="driver");document.getElementById("driverVerificationPanel")?.classList.toggle("hidden",currentProfile.role!=="driver");document.getElementById("driverSafetyActions")?.classList.toggle("hidden",currentProfile.role!=="driver");showHome();if(currentProfile.role==="driver")await loadDriverVerification();else await loadMySafetyReports();startNotificationMonitoring();msg("تم تسجيل الدخول")}
 async function loadProviderDashboard(){
  if(!["provider","driver"].includes(currentProfile?.role)||!currentUser)return;
  const stats=document.getElementById("providerStats"),list=document.getElementById("providerListings"),ridesBox=document.getElementById("providerRides");
@@ -462,7 +510,7 @@ async function loadOwnerUsers(){
  if(!currentAdminLevel)return;
  const box=document.getElementById("ownerUsers");if(!box)return;
  box.textContent="جارٍ تحميل أحدث الحسابات...";
- const {data,error}=await db.from("profiles").select("id,full_name,phone,role,created_at").order("created_at",{ascending:false}).limit(200);
+ const {data,error}=await db.from("profiles").select("id,full_name,phone,role,account_status,created_at").order("created_at",{ascending:false}).limit(200);
  if(error){box.textContent="تعذر تحميل الحسابات: "+error.message;return}
  ownerUsersCache=data||[];filterOwnerUsers();
 }
@@ -470,7 +518,7 @@ function filterOwnerUsers(){
  const box=document.getElementById("ownerUsers");if(!box)return;
  const term=(document.getElementById("ownerUserSearch")?.value||"").trim().toLowerCase();
  const rows=ownerUsersCache.filter(p=>!term||[p.full_name,p.phone,p.role,p.id].some(v=>String(v||"").toLowerCase().includes(term)));
- box.innerHTML=rows.map(p=>'<div class="admin-record"><b>'+safe(p.full_name||"بدون اسم")+'</b><p>'+safe(p.role||"غير محدد")+' · '+safe(p.phone||"لا يوجد رقم مسجل")+'</p><small>معرّف الحساب: '+safe(p.id)+' · '+safe(p.created_at?rideDate(p.created_at):"")+'</small></div>').join("")||"لا توجد حسابات مطابقة.";
+ box.innerHTML=rows.map(p=>'<div class="admin-record"><b>'+safe(p.full_name||"بدون اسم")+'</b><p>النوع: '+safe(accountRoleLabel(p.role))+' · الحالة: '+safe(p.account_status==="suspended"?"موقوف":"نشط")+' · '+safe(p.phone||"لا يوجد رقم مسجل")+'</p><button type="button" class="secondary" onclick="ownerToggleAccountStatus(\''+safe(p.id)+'\',\''+(p.account_status==="suspended"?"active":"suspended")+'\')">'+(p.account_status==="suspended"?"إعادة تنشيط الحساب":"إيقاف الحساب")+'</button><small>معرّف الحساب: '+safe(p.id)+' · '+safe(p.created_at?rideDate(p.created_at):"")+'</small></div>').join("")||"لا توجد حسابات مطابقة.";
 }
 
 function rideTrackingPhoneLinks(phone){
