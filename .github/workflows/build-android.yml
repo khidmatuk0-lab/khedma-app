@@ -49,6 +49,7 @@ jobs:
           import com.getcapacitor.annotation.CapacitorPlugin;
           import java.nio.ByteBuffer;
           import java.security.KeyStore;
+          import org.json.JSONObject;
           import javax.crypto.Cipher;
           import javax.crypto.KeyGenerator;
           import javax.crypto.SecretKey;
@@ -95,7 +96,7 @@ jobs:
                       String key = call.getString("key");
                       String encoded = getContext().getSharedPreferences(PREFS, 0).getString(key, null);
                       JSObject result = new JSObject();
-                      if (encoded == null) { result.put("value", JSObject.NULL); call.resolve(result); return; }
+                      if (encoded == null) { result.put("value", JSONObject.NULL); call.resolve(result); return; }
                       ByteBuffer buffer = ByteBuffer.wrap(Base64.decode(encoded, Base64.NO_WRAP));
                       int ivLength = buffer.getInt();
                       byte[] iv = new byte[ivLength]; buffer.get(iv);
