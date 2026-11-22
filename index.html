@@ -401,17 +401,27 @@ async function rotateOwnerTotpSecret(){
  if(!currentUser||currentUser.id!==KHIDMA_OWNER_ID||!currentAdminLevel){msg("هذه الخاصية متاحة لمالك المنصة فقط.");return}
  const btn=document.querySelector('#ownerSecurityPanel button');if(btn){btn.disabled=true;btn.textContent="جارٍ تجهيز مفتاح جديد..."}
  try{
-  const {data:before,error:beforeError}=await db.auth.mfa.listFactors();if(beforeError)throw beforeError;
-  const factors=before?.totp||[];
+  const targetName="Khedma owner rotated authenticator";
+  const readTotpFactors=async()=>{
+   const {data,error}=await db.auth.mfa.listFactors();if(error)throw error;
+   const merged=[...(data?.totp||[]),...(data?.all||[]),...(data?.factors||[])];
+   return [...new Map(merged.filter(f=>f&&(f.factor_type==="totp"||f.factorType==="totp"||!f.factor_type)).map(f=>[f.id,f])).values()];
+  };
+  let factors=await readTotpFactors();
   const oldVerified=factors.filter(f=>f.status==="verified");
   if(!oldVerified.length)throw new Error("لا يوجد مفتاح حالي موثق لاستبداله.");
-  const pending=factors.filter(f=>f.friendly_name==="Khedma owner rotated authenticator"&&f.status!=="verified");
+  const getPending=()=>factors.filter(f=>(f.friendly_name||f.friendlyName||f.name)===targetName&&f.status!=="verified"&&f.id);
+  let pending=getPending();
   if(pending.length>1)throw new Error("يوجد أكثر من مفتاح جديد غير مكتمل. لا تحذف أي حساب يدويًا؛ يلزم مراجعة آمنة قبل المتابعة.");
   let factorId=pending[0]?.id||null, enrollment=null;
   if(!factorId){
-   const {data,error}=await db.auth.mfa.enroll({factorType:"totp",friendlyName:"Khedma owner rotated authenticator"});
-   if(error)throw error;
-   enrollment=data;factorId=data.id;
+   const result=await db.auth.mfa.enroll({factorType:"totp",friendlyName:targetName});
+   if(result.error){
+    // Re-fetch in case Auth has a pending factor not present in the first list response.
+    factors=await readTotpFactors();pending=getPending();
+    if(pending.length===1)factorId=pending[0].id;
+    else throw result.error;
+   }else{enrollment=result.data;factorId=result.data.id;}
   }
   const description=enrollment
    ?"امسح رمز QR لإضافة المفتاح الجديد إلى Google Authenticator. بعد إضافته، اكتب الرمز الجديد المكوّن من 6 أرقام هنا. لا تحذف المفتاح القديم."
