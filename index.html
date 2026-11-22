@@ -400,28 +400,35 @@ async function ownerMfaGate(){if(!currentUser||currentUser.id!==KHIDMA_OWNER_ID)
 async function rotateOwnerTotpSecret(){
  if(!currentUser||currentUser.id!==KHIDMA_OWNER_ID||!currentAdminLevel){msg("هذه الخاصية متاحة لمالك المنصة فقط.");return}
  const btn=document.querySelector('#ownerSecurityPanel button');if(btn){btn.disabled=true;btn.textContent="جارٍ تجهيز مفتاح جديد..."}
- let enrolledFactorId=null;
  try{
   const {data:before,error:beforeError}=await db.auth.mfa.listFactors();if(beforeError)throw beforeError;
-  const oldVerified=(before?.totp||[]).filter(f=>f.status==="verified");
+  const factors=before?.totp||[];
+  const oldVerified=factors.filter(f=>f.status==="verified");
   if(!oldVerified.length)throw new Error("لا يوجد مفتاح حالي موثق لاستبداله.");
-  const {data:enrollment,error:enrollError}=await db.auth.mfa.enroll({factorType:"totp",friendlyName:"Khedma owner rotated authenticator"});
-  if(enrollError)throw enrollError;
-  enrolledFactorId=enrollment.id;
-  const code=await ownerMfaPanel({qr:enrollment?.totp?.qr_code,secret:enrollment?.totp?.secret,heading:"تغيير مفتاح تأمين حساب خدمة",description:"أضف الحساب الجديد إلى Google Authenticator، ثم اكتب الرمز الجديد المكوّن من 6 أرقام هنا. لا تحذف الحساب القديم الآن؛ سيُلغى تلقائيًا بعد نجاح التحقق."});
-  if(!code){msg("تم إلغاء العملية. المفتاح القديم ما زال يعمل.");return}
-  const {data:challenge,error:challengeError}=await db.auth.mfa.challenge({factorId:enrolledFactorId});if(challengeError)throw challengeError;
-  const {error:verifyError}=await db.auth.mfa.verify({factorId:enrolledFactorId,challengeId:challenge.id,code});if(verifyError)throw verifyError;
+  const pending=factors.filter(f=>f.friendly_name==="Khedma owner rotated authenticator"&&f.status!=="verified");
+  if(pending.length>1)throw new Error("يوجد أكثر من مفتاح جديد غير مكتمل. لا تحذف أي حساب يدويًا؛ يلزم مراجعة آمنة قبل المتابعة.");
+  let factorId=pending[0]?.id||null, enrollment=null;
+  if(!factorId){
+   const {data,error}=await db.auth.mfa.enroll({factorType:"totp",friendlyName:"Khedma owner rotated authenticator"});
+   if(error)throw error;
+   enrollment=data;factorId=data.id;
+  }
+  const description=enrollment
+   ?"امسح رمز QR لإضافة المفتاح الجديد إلى Google Authenticator. بعد إضافته، اكتب الرمز الجديد المكوّن من 6 أرقام هنا. لا تحذف المفتاح القديم."
+   :"وجدنا المفتاح الجديد الذي أضفته في المحاولة السابقة. افتح حساب «خدمة» الثاني في Google Authenticator واكتب رمزه الحالي المكوّن من 6 أرقام. لا تستخدم الحساب القديم.";
+  const code=await ownerMfaPanel({qr:enrollment?.totp?.qr_code,secret:enrollment?.totp?.secret,heading:"تغيير مفتاح تأمين حساب خدمة",description});
+  if(!code){msg("تم إلغاء العملية. لم يُلغَ المفتاح القديم، ويمكنك إكمال المحاولة لاحقًا.");return}
+  const {data:challenge,error:challengeError}=await db.auth.mfa.challenge({factorId});if(challengeError)throw challengeError;
+  const {error:verifyError}=await db.auth.mfa.verify({factorId,challengeId:challenge.id,code});if(verifyError)throw verifyError;
   const {data:after,error:afterError}=await db.auth.mfa.listFactors();if(afterError)throw afterError;
-  const stale=(after?.totp||[]).filter(f=>f.status==="verified"&&f.id!==enrolledFactorId);
+  const stale=(after?.totp||[]).filter(f=>f.status==="verified"&&f.id!==factorId);
   const failed=[];
   for(const f of stale){const {error}=await db.auth.mfa.unenroll({factorId:f.id});if(error)failed.push(error.message)}
-  if(failed.length){msg("المفتاح الجديد اتفعل بنجاح، لكن تعذر إلغاء عامل قديم تلقائيًا. أعد المحاولة أو تواصل مع الدعم. الهاتف الموثوق لم يتغير.");return}
-  msg("تم تغيير مفتاح Google Authenticator بنجاح وإلغاء المفتاح القديم. الهاتف الموثوق ما زال محفوظًا.");
+  if(failed.length){msg("تم توثيق المفتاح الجديد، لكن تعذر إلغاء عامل قديم تلقائيًا. لا تحذف الحساب القديم يدويًا الآن. الهاتف الموثوق لم يتغير.");return}
+  msg("تم تغيير مفتاح Google Authenticator بنجاح وإلغاء المفتاح القديم. يمكنك الآن حذف الحساب القديم فقط من تطبيق Google Authenticator. الهاتف الموثوق ما زال محفوظًا.");
  }catch(e){
   console.error("TOTP rotation:",e);
-  if(enrolledFactorId){try{const {data}=await db.auth.mfa.listFactors();const pending=(data?.totp||[]).find(f=>f.id===enrolledFactorId&&f.status!=="verified");if(pending)await db.auth.mfa.unenroll({factorId:enrolledFactorId})}catch(cleanupError){console.warn("Pending factor cleanup failed",cleanupError)}}
-  msg("لم يكتمل تغيير المفتاح، والمفتاح القديم لم يُلغَ إذا لم ينجح التحقق. السبب: "+(e?.message||"خطأ غير معروف"));
+  msg("لم يكتمل تغيير المفتاح. احتفظ بالحسابين كما هما؛ المفتاح القديم لم يُلغَ. السبب: "+(e?.message||"خطأ غير معروف"));
  }finally{if(btn){btn.disabled=false;btn.textContent="تغيير مفتاح Google Authenticator"}}
 }
 window.login=login;
